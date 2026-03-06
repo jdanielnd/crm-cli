@@ -12,6 +12,7 @@ import { registerLogCommands } from './commands/log.js'
 import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
 import { registerRelateCommands } from './commands/relate.js'
+import { registerSearchCommands } from './commands/search.js'
 import { registerTagCommands } from './commands/tag.js'
 import { registerTaskCommands } from './commands/task.js'
 
@@ -39,6 +40,7 @@ registerTagCommands(program)
 registerRelateCommands(program)
 registerDealCommands(program)
 registerTaskCommands(program)
+registerSearchCommands(program)
 
 async function main() {
   try {
