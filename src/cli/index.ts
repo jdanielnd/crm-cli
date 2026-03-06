@@ -10,6 +10,7 @@ import { CliError } from '../models/errors.js'
 import { registerContextCommands } from './commands/context.js'
 import { registerDealCommands } from './commands/deal.js'
 import { registerLogCommands } from './commands/log.js'
+import { registerMcpCommands } from './commands/mcp.js'
 import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
 import { registerRelateCommands } from './commands/relate.js'
@@ -45,6 +46,7 @@ registerTaskCommands(program)
 registerSearchCommands(program)
 registerContextCommands(program)
 registerStatusCommands(program)
+registerMcpCommands(program)
 
 async function main() {
   try {
