@@ -10,6 +10,7 @@ import { CliError } from '../models/errors.js'
 import { registerLogCommands } from './commands/log.js'
 import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
+import { registerRelateCommands } from './commands/relate.js'
 import { registerTagCommands } from './commands/tag.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -33,6 +34,7 @@ registerPersonCommands(program)
 registerOrgCommands(program)
 registerLogCommands(program)
 registerTagCommands(program)
+registerRelateCommands(program)
 
 async function main() {
   try {
