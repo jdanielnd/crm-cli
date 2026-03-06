@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
 
 import { CliError } from '../models/errors.js'
+import { registerPersonCommands } from './commands/person.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8')) as {
@@ -25,7 +26,7 @@ program
   .option('--db <path>', 'alternate database path')
   .option('--no-color', 'disable colors')
 
-// Commands will be registered here in subsequent steps
+registerPersonCommands(program)
 
 async function main() {
   try {
