@@ -145,13 +145,19 @@ const PersonRow = z.object({
   email: z.string().email().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
-  archived: z.number().transform(v => v === 1),
+  archived: z.number().transform((v) => v === 1),
 })
 
 type PersonRow = z.infer<typeof PersonRow>
 
-const PersonInsert = PersonRow.omit({ id: true, uuid: true, created_at: true, updated_at: true, archived: true })
-const PersonUpdate = PersonInsert.partial()  // all fields optional for PATCH semantics
+const PersonInsert = PersonRow.omit({
+  id: true,
+  uuid: true,
+  created_at: true,
+  updated_at: true,
+  archived: true,
+})
+const PersonUpdate = PersonInsert.partial() // all fields optional for PATCH semantics
 ```
 
 For CLI input: use `z.coerce.number()` for string-to-number args, `z.enum()` for fixed choices, `.default()` for optional args.
@@ -302,8 +308,8 @@ Runs `npm publish --provenance --access public`. Requires `permissions: id-token
     "lint": "eslint . && prettier --check .",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "prepare": "husky"
-  }
+    "prepare": "husky",
+  },
 }
 ```
 

@@ -169,25 +169,25 @@ crm mcp serve          # stdio transport (for Claude Code, etc.)
 
 ### MCP Tools
 
-| Tool | Description |
-|------|-------------|
-| `crm_person_search` | Search people by name, email, tag, org |
-| `crm_person_get` | Get full details for a person |
-| `crm_person_create` | Create a new person |
-| `crm_person_update` | Update person fields |
+| Tool                        | Description                                           |
+| --------------------------- | ----------------------------------------------------- |
+| `crm_person_search`         | Search people by name, email, tag, org                |
+| `crm_person_get`            | Get full details for a person                         |
+| `crm_person_create`         | Create a new person                                   |
+| `crm_person_update`         | Update person fields                                  |
 | `crm_person_update_summary` | Update the AI-maintained summary/dossier for a person |
-| `crm_org_search` | Search organizations |
-| `crm_org_get` | Get org details with people |
-| `crm_interaction_log` | Log an interaction |
-| `crm_interaction_list` | List interactions for a person/org |
-| `crm_search` | Cross-entity full-text search |
-| `crm_context` | Full context for a person (the briefing) |
-| `crm_task_create` | Create a follow-up task |
-| `crm_task_list` | List open tasks |
-| `crm_deal_create` | Create a deal |
-| `crm_deal_update` | Update deal stage |
-| `crm_tag_apply` | Apply tag to entity |
-| `crm_stats` | CRM summary stats |
+| `crm_org_search`            | Search organizations                                  |
+| `crm_org_get`               | Get org details with people                           |
+| `crm_interaction_log`       | Log an interaction                                    |
+| `crm_interaction_list`      | List interactions for a person/org                    |
+| `crm_search`                | Cross-entity full-text search                         |
+| `crm_context`               | Full context for a person (the briefing)              |
+| `crm_task_create`           | Create a follow-up task                               |
+| `crm_task_list`             | List open tasks                                       |
+| `crm_deal_create`           | Create a deal                                         |
+| `crm_deal_update`           | Update deal stage                                     |
+| `crm_tag_apply`             | Apply tag to entity                                   |
+| `crm_stats`                 | CRM summary stats                                     |
 
 ### AI Workflow Example — Post-Meeting
 
@@ -205,17 +205,17 @@ The `summary` field acts as a living dossier — AI reads it before meetings for
 
 ## Technical Stack
 
-| Component | Choice | Why |
-|-----------|--------|-----|
-| Language | TypeScript (Node.js) | MCP SDK is TS-first, rich CLI ecosystem |
-| Database | `better-sqlite3` | Synchronous, fast, no async overhead for CLI |
-| CLI framework | `commander` | Simple, well-documented |
-| MCP | `@modelcontextprotocol/sdk` | First-class AI integration |
-| Validation | `zod` | Types + runtime validation |
-| Tables | `cli-table3` | Terminal table formatting |
-| Colors | `chalk` | Terminal colors |
-| Dates | `date-fns` + `chrono-node` | Date formatting + natural language parsing |
-| Testing | `vitest` | Fast, modern test runner |
+| Component     | Choice                      | Why                                          |
+| ------------- | --------------------------- | -------------------------------------------- |
+| Language      | TypeScript (Node.js)        | MCP SDK is TS-first, rich CLI ecosystem      |
+| Database      | `better-sqlite3`            | Synchronous, fast, no async overhead for CLI |
+| CLI framework | `commander`                 | Simple, well-documented                      |
+| MCP           | `@modelcontextprotocol/sdk` | First-class AI integration                   |
+| Validation    | `zod`                       | Types + runtime validation                   |
+| Tables        | `cli-table3`                | Terminal table formatting                    |
+| Colors        | `chalk`                     | Terminal colors                              |
+| Dates         | `date-fns` + `chrono-node`  | Date formatting + natural language parsing   |
+| Testing       | `vitest`                    | Fast, modern test runner                     |
 
 ## Project Structure
 
