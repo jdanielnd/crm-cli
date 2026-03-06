@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
 
 import { CliError } from '../models/errors.js'
+import { registerDealCommands } from './commands/deal.js'
 import { registerLogCommands } from './commands/log.js'
 import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
@@ -35,6 +36,7 @@ registerOrgCommands(program)
 registerLogCommands(program)
 registerTagCommands(program)
 registerRelateCommands(program)
+registerDealCommands(program)
 
 async function main() {
   try {
