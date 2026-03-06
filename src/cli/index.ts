@@ -10,6 +10,7 @@ import { CliError } from '../models/errors.js'
 import { registerLogCommands } from './commands/log.js'
 import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
+import { registerTagCommands } from './commands/tag.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8')) as {
@@ -31,6 +32,7 @@ program
 registerPersonCommands(program)
 registerOrgCommands(program)
 registerLogCommands(program)
+registerTagCommands(program)
 
 async function main() {
   try {
