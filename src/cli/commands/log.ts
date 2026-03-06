@@ -31,7 +31,8 @@ interface GlobalOpts {
 }
 
 function getOpts(cmd: Command): GlobalOpts {
-  const root = cmd.parent ?? cmd
+  let root = cmd
+  while (root.parent) root = root.parent
   return root.opts()
 }
 
