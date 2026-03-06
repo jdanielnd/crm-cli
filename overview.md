@@ -1,45 +1,37 @@
-# crm
+# crm — Product Overview
 
 A local-first personal CRM for the terminal. Store contacts, organizations, interactions, deals, and tasks in a local SQLite database. Every command outputs structured data (table, JSON, CSV) making it equally usable by humans and AI agents. Ships with a built-in MCP server so AI agents can search, query, and update your CRM directly.
 
-Distributed as a single static binary — no runtime dependencies, no installers. Works on macOS, Linux, and Windows.
-
 ## Core Principles
 
-- **Local-first** — SQLite database, no cloud, no accounts, your data stays on your machine
+- **Local-first** — SQLite in `~/.crm/`, no cloud, no accounts, your data stays on your machine
 - **AI-native** — MCP server, JSON output, `crm context` command for pre-meeting briefings
 - **Unix philosophy** — pipeable, composable, scriptable, works with `jq`, `fzf`, `xargs`
 - **Zero config** — auto-creates database on first use
-- **Single binary** — `go install` or download a release, no dependencies to manage
 
-## Install
+## Who It's For
 
-```bash
-# Homebrew (macOS/Linux)
-brew install jdanielnd/tap/crm
+- Developers who network and want CLI-native tooling
+- Freelancers/consultants managing client relationships
+- Founders doing early-stage sales
+- Anyone who wants AI agents to help manage their professional network
+- Power users who prefer terminal over web UIs
 
-# Go install
-go install github.com/jdanielnd/crm-cli/cmd/crm@latest
+## What Makes It Different
 
-# Or download a binary from GitHub Releases
-# https://github.com/jdanielnd/crm-cli/releases
-```
+1. **AI-native from day one** — not a web CRM with an API bolted on; MCP server and structured output are core
+2. **Privacy-first** — local SQLite, no cloud, no telemetry, portable file you own
+3. **Unix philosophy** — pipes, JSON, exit codes, composable with the entire shell ecosystem
+4. **Interaction-centric** — not just an address book; centers on the history of your relationships
+5. **Zero friction** — `crm person add "Jane Smith"` and you're running
 
-## Quick Start
-
-```bash
-crm person add "Jane Smith" --email jane@example.com
-crm org add "Acme Corp" --domain acme.com
-crm log call 1 --subject "Intro call"
-crm context 1                            # full briefing on Jane
-crm status                               # dashboard overview
-```
+---
 
 ## Data Model
 
 Six core entities with full-text search across all of them:
 
-**People** — contacts with name, email, phone, title, location, notes, an AI-maintained `summary` field (living dossier), plus custom fields
+**People** — contacts with name, email, phone, title, location, notes, an AI-maintained `summary` field (living dossier of key facts about the person), plus custom fields
 
 **Organizations** — companies/groups that people belong to
 
@@ -51,21 +43,23 @@ Six core entities with full-text search across all of them:
 
 **Tags** — flat labels applicable to any entity (polymorphic tagging)
 
-Supporting structures:
+### Supporting Structures
 
-- **Custom fields** — key/value pairs on any entity (birthday, github handle, etc.)
+- **Custom fields** — key/value pairs on any entity for extensibility (birthday, github handle, etc.)
 - **Relationships** — person-to-person links (colleague, friend, manager, mentor, referred-by)
 - **Full-text search** — FTS5 indexes on people, organizations, interactions, and deals
 
-Key design decisions:
+### Key Design Decisions
 
-- Integer IDs for human-friendly CLI use (`crm person show 42`) + UUIDs for external references
+- Integer IDs for human-friendly CLI use (`crm person show 42`) + UUIDs for stable external references
 - `occurred_at` vs `created_at` on interactions (log a call after the fact)
 - Soft-delete via `archived` flag (CRM data is precious)
 - WAL mode for concurrent access (MCP server + CLI simultaneously)
-- **AI-maintained `summary`** on People and Organizations — a living dossier that AI agents update after each interaction, separate from user-written `notes`
+- **AI-maintained `summary` field** on People and Organizations — a living dossier that AI agents update after each interaction. Contains key facts, preferences, relationship context, and conversation history highlights. Separate from `notes` (which is user-written). AI can read the summary before a meeting and update it after, keeping a continuously refined profile of each contact.
 
-## CLI Usage
+---
+
+## CLI Interface
 
 Pattern: `crm <entity> <action> [args] [flags]`
 
@@ -141,13 +135,13 @@ crm search "jane"                        # searches people, orgs, interactions
 crm search "roadmap" --type interaction --since 2026-01-01
 ```
 
-### Context
+### Context (AI Killer Feature)
 
 ```bash
-crm context 42                           # everything about a person in one call
+crm context "Jane Smith"                 # everything about a person in one call
 ```
 
-Returns: person profile + org + recent interactions + open deals + open tasks + relationships + custom fields.
+Returns: person profile + org + recent interactions + open deals + open tasks + relationships + custom fields + interaction frequency summary.
 
 ### Import/Export
 
@@ -165,6 +159,8 @@ crm status
 # 342 contacts | 28 organizations | 5 open deals ($47,500)
 # 3 tasks overdue | 12 interactions this week
 ```
+
+---
 
 ## Piping & Composition
 
@@ -185,7 +181,18 @@ crm person list -f tsv | fzf | cut -f1 | xargs crm person show
 crm task list --overdue -f json | jq -r '.[] | "OVERDUE: \(.title) — \(.person.first_name)"'
 ```
 
-**Exit codes:** 0=success, 1=error, 2=usage error, 3=not found, 4=conflict, 10=db error
+### Exit Codes
+
+| Code | Meaning    |
+| ---- | ---------- |
+| 0    | Success    |
+| 1    | Error      |
+| 2    | Usage error|
+| 3    | Not found  |
+| 4    | Conflict   |
+| 10   | DB error   |
+
+---
 
 ## AI Integration (MCP Server)
 
@@ -216,7 +223,7 @@ crm mcp serve          # stdio transport (for Claude Code, etc.)
 | `crm_person_relate`         | Create relationship between two people                |
 | `crm_stats`                 | CRM summary stats                                     |
 
-### AI Workflow Example
+### AI Workflow Example — Post-Meeting
 
 ```
 User: "Just had a great meeting with Jane. We agreed on the timeline, she'll sign next week."
@@ -227,12 +234,14 @@ AI calls:
 3. crm_task_create(title="Follow up on signed contract", person_id=42, due="next week")
 4. crm_person_update_summary(id=42, summary="CTO at Acme Corp. Working on $15K website
    redesign deal. Agreed on timeline Mar 2026, expecting signed contract by mid-March.
-   Prefers async communication. Met at ReactConf 2025.")
+   Prefers async communication. Met at ReactConf 2025. Colleague of Tom Baker.")
 ```
 
-## Data Directory
+The `summary` field acts as a living dossier — AI reads it before meetings for instant context, and updates it after interactions to capture new facts, preferences, and relationship evolution. Unlike `notes` (user-written), `summary` is AI-maintained and continuously refined.
 
-By default the database lives at `~/.crm/crm.db`. Override with `--db <path>` or the `CRM_DB` environment variable.
+---
+
+## Data Directory
 
 ```
 ~/.crm/
@@ -240,77 +249,16 @@ By default the database lives at `~/.crm/crm.db`. Override with `--db <path>` or
   backups/            # auto-backup before migrations
 ```
 
-### iCloud Sync (macOS)
+---
 
-On macOS, you can point your database to iCloud Drive for automatic backup and cross-machine sync:
+## Implementation Phases
 
-```bash
-# Use iCloud Drive as your CRM data directory
-export CRM_DB="$HOME/Library/Mobile Documents/com~apple~CloudDocs/crm/crm.db"
+**Phase 1 — Foundation (MVP):** Database schema + migrations, Person CRUD, Organization CRUD, basic interaction logging (`crm log`), full-text search, table + JSON output
 
-# Or add to your shell profile (~/.zshrc)
-echo 'export CRM_DB="$HOME/Library/Mobile Documents/com~apple~CloudDocs/crm/crm.db"' >> ~/.zshrc
-```
+**Phase 2 — Relationships & Context:** Tags, custom fields, person-to-person relationships, `crm context` command, CSV/vCard import/export
 
-The database is auto-created on first use. iCloud handles syncing the file across your Macs. Since SQLite uses WAL mode, avoid running `crm` on two machines simultaneously against the same iCloud-synced file — use it as a backup/portability mechanism, not real-time sync.
+**Phase 3 — AI Integration:** MCP server with full tool suite, `crm mcp serve`, natural language date parsing
 
-## Technical Stack
+**Phase 4 — Productivity:** Deals/pipeline, tasks/follow-ups, `crm status` dashboard, auto-backups
 
-| Component     | Choice              | Why                                                    |
-| ------------- | ------------------- | ------------------------------------------------------ |
-| Language      | Go                  | Single static binary, fast startup, cross-platform     |
-| Database      | `modernc.org/sqlite`| Pure-Go SQLite, no CGO, cross-compiles cleanly         |
-| CLI framework | `cobra`             | Industry standard, subcommands, completions, man pages |
-| MCP           | `mcp-go`            | Go MCP SDK, stdio transport                            |
-| Tables        | `tablewriter`       | Terminal table formatting                              |
-| Colors        | `fatih/color`       | Terminal colors with NO_COLOR support                  |
-| Testing       | `testing` + `testify` | Standard library + assertions                        |
-
-## Project Structure
-
-```
-crm-cli/
-  cmd/
-    crm/
-      main.go                # entry point
-  internal/
-    cli/
-      root.go                # root command, global flags
-      person.go, org.go, log.go, tag.go,
-      deal.go, task.go, search.go, context.go,
-      status.go, mcp.go, relate.go
-    db/
-      db.go                  # connection, migrations, pragmas
-      migrations/            # embedded SQL migration files
-      repo/
-        person.go, org.go, interaction.go,
-        tag.go, deal.go, task.go,
-        custom_field.go, relationship.go
-    mcp/
-      server.go              # MCP server + tool definitions
-    format/
-      table.go, json.go, csv.go
-    model/
-      types.go               # domain types and constants
-      errors.go              # error types with exit codes
-  go.mod
-  go.sum
-  CLAUDE.md
-  README.md
-```
-
-## Building
-
-```bash
-go build -o crm ./cmd/crm
-
-# Cross-compile
-GOOS=darwin  GOARCH=arm64 go build -o crm-darwin-arm64  ./cmd/crm
-GOOS=darwin  GOARCH=amd64 go build -o crm-darwin-amd64  ./cmd/crm
-GOOS=linux   GOARCH=amd64 go build -o crm-linux-amd64   ./cmd/crm
-GOOS=windows GOARCH=amd64 go build -o crm-windows-amd64.exe ./cmd/crm
-```
-
-## License
-
-MIT
+**Phase 5 — Polish:** fzf integration, duplicate detection/merge, bulk operations, shell completions, man page
