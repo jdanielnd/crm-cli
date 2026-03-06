@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
 
 import { CliError } from '../models/errors.js'
+import { registerOrgCommands } from './commands/org.js'
 import { registerPersonCommands } from './commands/person.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -27,6 +28,7 @@ program
   .option('--no-color', 'disable colors')
 
 registerPersonCommands(program)
+registerOrgCommands(program)
 
 async function main() {
   try {
