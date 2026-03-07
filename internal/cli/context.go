@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
@@ -57,36 +58,49 @@ func registerContextCommand(rootCmd *cobra.Command) {
 			if person.OrgID != nil {
 				or := repo.NewOrgRepo(db)
 				org, err = or.FindByID(ctx, *person.OrgID)
-				if err == nil {
-					result["organization"] = orgToMap(org)
+				if err != nil {
+					return err
 				}
+				result["organization"] = orgToMap(org)
 			}
 
 			// Recent interactions
 			ir := repo.NewInteractionRepo(db)
 			interactions, err := ir.FindAll(ctx, model.InteractionFilters{PersonID: &person.ID, Limit: 10})
-			if err == nil && len(interactions) > 0 {
+			if err != nil {
+				return err
+			}
+			if len(interactions) > 0 {
 				result["recent_interactions"] = interactionsToMaps(interactions)
 			}
 
 			// Open deals
 			dr := repo.NewDealRepo(db)
 			deals, err := dr.FindAll(ctx, model.DealFilters{PersonID: &person.ID})
-			if err == nil && len(deals) > 0 {
+			if err != nil {
+				return err
+			}
+			if len(deals) > 0 {
 				result["deals"] = dealsToMaps(deals)
 			}
 
 			// Open tasks
 			tr := repo.NewTaskRepo(db)
 			tasks, err := tr.FindAll(ctx, model.TaskFilters{PersonID: &person.ID})
-			if err == nil && len(tasks) > 0 {
+			if err != nil {
+				return err
+			}
+			if len(tasks) > 0 {
 				result["tasks"] = tasksToMaps(tasks)
 			}
 
 			// Relationships
 			rr := repo.NewRelationshipRepo(db)
 			rels, err := rr.FindForPerson(ctx, person.ID)
-			if err == nil && len(rels) > 0 {
+			if err != nil {
+				return err
+			}
+			if len(rels) > 0 {
 				relMaps := make([]map[string]any, len(rels))
 				for i, rel := range rels {
 					relMaps[i] = map[string]any{
@@ -105,7 +119,10 @@ func registerContextCommand(rootCmd *cobra.Command) {
 			// Tags
 			tagRepo := repo.NewTagRepo(db)
 			tags, err := tagRepo.GetForEntity(ctx, "person", person.ID)
-			if err == nil && len(tags) > 0 {
+			if err != nil {
+				return err
+			}
+			if len(tags) > 0 {
 				tagNames := make([]string, len(tags))
 				for i, t := range tags {
 					tagNames[i] = t.Name
@@ -215,7 +232,5 @@ func registerContextCommand(rootCmd *cobra.Command) {
 }
 
 func parseID(s string) (int64, error) {
-	var id int64
-	_, err := fmt.Sscanf(s, "%d", &id)
-	return id, err
+	return strconv.ParseInt(s, 10, 64)
 }

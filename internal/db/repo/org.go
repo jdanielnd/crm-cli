@@ -71,11 +71,13 @@ func (r *OrgRepo) FindByID(ctx context.Context, id int64) (*model.Organization, 
 // FindAll lists organizations with optional filters.
 func (r *OrgRepo) FindAll(ctx context.Context, limit int) ([]*model.Organization, error) {
 	query := fmt.Sprintf("SELECT %s FROM organizations WHERE archived = 0 ORDER BY updated_at DESC", orgColumns)
+	var args []any
 	if limit > 0 {
-		query += fmt.Sprintf(" LIMIT %d", limit)
+		query += " LIMIT ?"
+		args = append(args, limit)
 	}
 
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("list organizations: %w", err)
 	}

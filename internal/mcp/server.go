@@ -242,6 +242,42 @@ func strPtr(s string) *string {
 	return &s
 }
 
+// Safe type assertion helpers for MCP arguments.
+
+func argString(args map[string]any, key string) (string, bool) {
+	v, ok := args[key]
+	if !ok {
+		return "", false
+	}
+	s, ok := v.(string)
+	return s, ok
+}
+
+func argFloat(args map[string]any, key string) (float64, bool) {
+	v, ok := args[key]
+	if !ok {
+		return 0, false
+	}
+	switch n := v.(type) {
+	case float64:
+		return n, true
+	case int:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	default:
+		return 0, false
+	}
+}
+
+func argInt64(args map[string]any, key string) (int64, bool) {
+	f, ok := argFloat(args, key)
+	if !ok {
+		return 0, false
+	}
+	return int64(f), true
+}
+
 // --- Person handlers ---
 
 func personSearchHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
@@ -293,40 +329,31 @@ func personUpdateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 		args := req.GetArguments()
 		input := model.UpdatePersonInput{}
 
-		if v, ok := args["first_name"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "first_name"); ok {
 			input.FirstName = &s
 		}
-		if v, ok := args["last_name"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "last_name"); ok {
 			input.LastName = &s
 		}
-		if v, ok := args["email"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "email"); ok {
 			input.Email = &s
 		}
-		if v, ok := args["phone"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "phone"); ok {
 			input.Phone = &s
 		}
-		if v, ok := args["title"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "title"); ok {
 			input.Title = &s
 		}
-		if v, ok := args["company"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "company"); ok {
 			input.Company = &s
 		}
-		if v, ok := args["location"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "location"); ok {
 			input.Location = &s
 		}
-		if v, ok := args["notes"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "notes"); ok {
 			input.Notes = &s
 		}
-		if v, ok := args["summary"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "summary"); ok {
 			input.Summary = &s
 		}
 
@@ -383,10 +410,15 @@ func interactionLogHandler(ir *repo.InteractionRepo) server.ToolHandlerFunc {
 
 		// Handle person_ids as an array of numbers
 		if ids, ok := args["person_ids"]; ok {
-			if idSlice, ok := ids.([]any); ok {
-				for _, v := range idSlice {
-					if f, ok := v.(float64); ok {
-						input.PersonIDs = append(input.PersonIDs, int64(f))
+			if v, ok := ids.([]any); ok {
+				for _, item := range v {
+					switch n := item.(type) {
+					case float64:
+						input.PersonIDs = append(input.PersonIDs, int64(n))
+					case int:
+						input.PersonIDs = append(input.PersonIDs, int64(n))
+					case int64:
+						input.PersonIDs = append(input.PersonIDs, n)
 					}
 				}
 			}
@@ -432,27 +464,31 @@ func searchHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionRe
 
 		if entityType == "" || entityType == "person" {
 			people, err := pr.Search(ctx, query, limit)
-			if err == nil {
-				results["people"] = people
+			if err != nil {
+				return gomcp.NewToolResultError(err.Error()), nil
 			}
+			results["people"] = people
 		}
 		if entityType == "" || entityType == "organization" {
 			orgs, err := or.Search(ctx, query, limit)
-			if err == nil {
-				results["organizations"] = orgs
+			if err != nil {
+				return gomcp.NewToolResultError(err.Error()), nil
 			}
+			results["organizations"] = orgs
 		}
 		if entityType == "" || entityType == "interaction" {
 			interactions, err := ir.Search(ctx, query, limit)
-			if err == nil {
-				results["interactions"] = interactions
+			if err != nil {
+				return gomcp.NewToolResultError(err.Error()), nil
 			}
+			results["interactions"] = interactions
 		}
 		if entityType == "" || entityType == "deal" {
 			deals, err := dr.Search(ctx, query, limit)
-			if err == nil {
-				results["deals"] = deals
+			if err != nil {
+				return gomcp.NewToolResultError(err.Error()), nil
 			}
+			results["deals"] = deals
 		}
 
 		return jsonResult(results)
@@ -473,33 +509,49 @@ func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionR
 
 		if person.OrgID != nil {
 			org, err := or.FindByID(ctx, *person.OrgID)
-			if err == nil {
-				result["organization"] = org
+			if err != nil {
+				return gomcp.NewToolResultError(err.Error()), nil
 			}
+			result["organization"] = org
 		}
 
 		interactions, err := ir.FindAll(ctx, model.InteractionFilters{PersonID: &person.ID, Limit: 10})
-		if err == nil && len(interactions) > 0 {
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		if len(interactions) > 0 {
 			result["recent_interactions"] = interactions
 		}
 
 		deals, err := dr.FindAll(ctx, model.DealFilters{PersonID: &person.ID})
-		if err == nil && len(deals) > 0 {
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		if len(deals) > 0 {
 			result["deals"] = deals
 		}
 
 		tasks, err := tr.FindAll(ctx, model.TaskFilters{PersonID: &person.ID})
-		if err == nil && len(tasks) > 0 {
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		if len(tasks) > 0 {
 			result["tasks"] = tasks
 		}
 
 		rels, err := rr.FindForPerson(ctx, person.ID)
-		if err == nil && len(rels) > 0 {
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		if len(rels) > 0 {
 			result["relationships"] = rels
 		}
 
 		tags, err := tagr.GetForEntity(ctx, "person", person.ID)
-		if err == nil && len(tags) > 0 {
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		if len(tags) > 0 {
 			result["tags"] = tags
 		}
 
@@ -512,23 +564,19 @@ func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionR
 func dealCreateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
 		args := req.GetArguments()
-		stage := req.GetString("stage", "lead")
 		input := model.CreateDealInput{
 			Title: req.GetString("title", ""),
-			Stage: stage,
+			Stage: req.GetString("stage", "lead"),
 			Notes: strPtr(req.GetString("notes", "")),
 		}
 
-		if v, ok := args["value"]; ok {
-			f := v.(float64)
+		if f, ok := argFloat(args, "value"); ok {
 			input.Value = &f
 		}
-		if v, ok := args["person_id"]; ok {
-			pid := int64(v.(float64))
+		if pid, ok := argInt64(args, "person_id"); ok {
 			input.PersonID = &pid
 		}
-		if v, ok := args["org_id"]; ok {
-			oid := int64(v.(float64))
+		if oid, ok := argInt64(args, "org_id"); ok {
 			input.OrgID = &oid
 		}
 
@@ -546,24 +594,19 @@ func dealUpdateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 		args := req.GetArguments()
 		input := model.UpdateDealInput{}
 
-		if v, ok := args["title"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "title"); ok {
 			input.Title = &s
 		}
-		if v, ok := args["value"]; ok {
-			f := v.(float64)
+		if f, ok := argFloat(args, "value"); ok {
 			input.Value = &f
 		}
-		if v, ok := args["stage"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "stage"); ok {
 			input.Stage = &s
 		}
-		if v, ok := args["notes"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "notes"); ok {
 			input.Notes = &s
 		}
-		if v, ok := args["closed_at"]; ok {
-			s := v.(string)
+		if s, ok := argString(args, "closed_at"); ok {
 			input.ClosedAt = &s
 		}
 
@@ -587,12 +630,10 @@ func taskCreateHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 			DueAt:       strPtr(req.GetString("due", "")),
 		}
 
-		if v, ok := args["person_id"]; ok {
-			pid := int64(v.(float64))
+		if pid, ok := argInt64(args, "person_id"); ok {
 			input.PersonID = &pid
 		}
-		if v, ok := args["deal_id"]; ok {
-			did := int64(v.(float64))
+		if did, ok := argInt64(args, "deal_id"); ok {
 			input.DealID = &did
 		}
 

@@ -96,7 +96,8 @@ func (r *PersonRepo) FindAll(ctx context.Context, filters model.PersonFilters) (
 	query += " ORDER BY updated_at DESC"
 
 	if filters.Limit > 0 {
-		query += fmt.Sprintf(" LIMIT %d", filters.Limit)
+		query += " LIMIT ?"
+		args = append(args, filters.Limit)
 	}
 
 	rows, err := r.db.QueryContext(ctx, query, args...)

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
+	"io/fs"
 	"strings"
 
 	_ "modernc.org/sqlite"
@@ -64,7 +65,15 @@ func runMigrations(db *sql.DB) error {
 		return fmt.Errorf("read migrations dir: %w", err)
 	}
 
-	for i, entry := range entries {
+	// Filter to .sql files only
+	var sqlEntries []fs.DirEntry
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".sql") {
+			sqlEntries = append(sqlEntries, entry)
+		}
+	}
+
+	for i, entry := range sqlEntries {
 		version := i + 1
 		if version <= currentVersion {
 			continue

@@ -89,7 +89,8 @@ func (r *TaskRepo) FindAll(ctx context.Context, filters model.TaskFilters) ([]*m
 	query += " ORDER BY CASE WHEN due_at IS NULL THEN 1 ELSE 0 END, due_at ASC, created_at DESC"
 
 	if filters.Limit > 0 {
-		query += fmt.Sprintf(" LIMIT %d", filters.Limit)
+		query += " LIMIT ?"
+		args = append(args, filters.Limit)
 	}
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
@@ -119,6 +120,15 @@ func (r *TaskRepo) Complete(ctx context.Context, id int64) (*model.Task, error) 
 	}
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
+		// Check if the task exists but is already completed
+		var completed int
+		err := r.db.QueryRowContext(ctx, "SELECT completed FROM tasks WHERE id = ? AND archived = 0", id).Scan(&completed)
+		if err != nil {
+			return nil, fmt.Errorf("task %d: %w", id, model.ErrNotFound)
+		}
+		if completed == 1 {
+			return nil, fmt.Errorf("task %d is already completed: %w", id, model.ErrConflict)
+		}
 		return nil, fmt.Errorf("task %d: %w", id, model.ErrNotFound)
 	}
 	return r.FindByID(ctx, id)
