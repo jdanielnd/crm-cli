@@ -697,6 +697,114 @@
       .faq-grid { grid-template-columns: 1fr; }
     }
 
+    /* Dark sections */
+    .section-dark {
+      background: var(--primary);
+      color: #fff;
+      padding: 6rem 0;
+      margin: 0;
+      max-width: none;
+    }
+
+    .section-dark .section-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .section-dark .section-label { color: var(--accent); }
+    .section-dark .section-title { color: #fff; }
+    .section-dark .section-desc { color: #B0ADC0; }
+
+    .section-dark .feature-card {
+      background: #110E24;
+      border-color: #1E1A40;
+    }
+
+    .section-dark .feature-card:hover { border-color: var(--accent); }
+    .section-dark .feature-card p { color: #B0ADC0; }
+    .section-dark .feature-card h3 { color: #fff; }
+    .section-dark .feature-icon { background: #1E1A40; }
+
+    .section-dark .step::before {
+      background: var(--accent);
+    }
+
+    .section-dark .step h3 { color: #fff; }
+    .section-dark .step p { color: #B0ADC0; }
+    .section-dark .step code {
+      background: #1E1A40;
+      color: #E8E6F0;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+    }
+    .section-dark .step a { color: var(--accent); }
+
+    .section-dark .principle {
+      background: #110E24;
+      border-color: #1E1A40;
+    }
+
+    .section-dark .principle h3 { color: #fff; }
+    .section-dark .principle p { color: #B0ADC0; }
+
+    .section-dark .tab-btn {
+      background: #110E24;
+      border-color: #1E1A40;
+      color: #B0ADC0;
+    }
+
+    .section-dark .tab-btn:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .section-dark .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .section-dark .chat {
+      background: #110E24;
+      border-color: #1E1A40;
+    }
+
+    .section-dark .chat-header {
+      border-color: #1E1A40;
+    }
+
+    .section-dark .chat-header span { color: #fff; }
+
+    .section-dark .chat-msg.user .bubble {
+      background: var(--accent);
+    }
+
+    .section-dark .chat-msg.assistant .bubble {
+      background: #1E1A40;
+      color: #E8E6F0;
+    }
+
+    .section-dark .chat-scenario h3 { color: #fff; }
+    .section-dark .chat-scenario p { color: #B0ADC0; }
+
+    .section-dark .faq-item {
+      background: #110E24;
+      border-color: #1E1A40;
+    }
+
+    .section-dark .faq-item h3 { color: #fff; }
+    .section-dark .faq-item p { color: #B0ADC0; }
+
+    .section-dark .faq-item code {
+      background: #1E1A40;
+      color: #E8E6F0;
+    }
+
+    @media (max-width: 768px) {
+      .section-dark { padding: 4rem 0; }
+    }
+
     /* Footer */
     footer {
       max-width: var(--max-width);
@@ -849,7 +957,8 @@
   </section>
 
   <!-- Quickstart -->
-  <section id="quickstart">
+  <section id="quickstart" class="section-dark">
+    <div class="section-inner">
     <p class="section-label">Quickstart</p>
     <h2 class="section-title">Up and running in 30 seconds.</h2>
     <p class="section-desc">
@@ -857,17 +966,8 @@
     </p>
     <div class="steps">
       <div class="step">
-        <h3>Install crm-cli</h3>
-        <p>The fastest way is <a href="https://brew.sh" style="color: var(--accent);">Homebrew</a> (macOS &amp; Linux):</p>
-        <div class="install-snippet" style="margin-top: 0.75rem; max-width: 100%;">
-          <code><span class="prefix">$</span> <span class="cmd">brew install jdanielnd/tap/crm</span></code>
-          <button onclick="navigator.clipboard.writeText('brew install jdanielnd/tap/crm')" title="Copy to clipboard">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          </button>
-        </div>
-        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem;">
-          Don't have Homebrew? Install it from <a href="https://brew.sh" style="color: var(--accent);">brew.sh</a>, or use <code>go install github.com/jdanielnd/crm-cli/cmd/crm@latest</code>, or grab a binary from <a href="https://github.com/jdanielnd/crm-cli/releases" style="color: var(--accent);">Releases</a>.
-        </p>
+        <h3>Install</h3>
+        <p>Run <code>brew install jdanielnd/tap/crm</code> via <a href="https://brew.sh" style="color: var(--accent);">Homebrew</a>. Or use <code>go install</code>, or download a binary from <a href="https://github.com/jdanielnd/crm-cli/releases" style="color: var(--accent);">Releases</a>.</p>
       </div>
       <div class="step">
         <h3>Add your first contact</h3>
@@ -904,6 +1004,7 @@ $ crm deal add <span class="string">"Website Redesign"</span> <span class="flag"
 <span class="comment"># Get a full briefing before your next meeting</span>
 $ crm context 1</pre>
       </div>
+    </div>
     </div>
   </section>
 
@@ -974,7 +1075,8 @@ $ crm context 1</pre>
   </section>
 
   <!-- Use Cases -->
-  <section id="use-cases">
+  <section id="use-cases" class="section-dark">
+    <div class="section-inner">
     <p class="section-label">Use Cases</p>
     <h2 class="section-title">See it in action.</h2>
     <p class="section-desc">
@@ -1124,6 +1226,7 @@ $ crm context 1</pre>
         </div>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- Principles -->
@@ -1158,7 +1261,8 @@ $ crm context 1</pre>
   </section>
 
   <!-- FAQ -->
-  <section id="faq">
+  <section id="faq" class="section-dark">
+    <div class="section-inner">
     <p class="section-label">FAQ</p>
     <h2 class="section-title">Common questions.</h2>
     <div class="faq-grid">
@@ -1195,15 +1299,16 @@ $ crm context 1</pre>
         <p>crm-cli uses soft deletes (archiving) by default, so records are recoverable. The SQLite file is yours — you can always open it with any SQLite client if you need to permanently remove data.</p>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- Footer -->
-  <footer>
-    <p>Built by <a href="https://github.com/jdanielnd">jdanielnd</a>. MIT License.</p>
+  <footer style="background: var(--primary); border-top-color: #1E1A40;">
+    <p style="color: #6B6889;">Built by <a href="https://github.com/jdanielnd" style="color: #B0ADC0;">jdanielnd</a>. MIT License.</p>
     <div class="footer-links">
-      <a href="https://github.com/jdanielnd/crm-cli">GitHub</a>
-      <a href="https://github.com/jdanielnd/crm-cli/releases">Releases</a>
-      <a href="https://github.com/jdanielnd/crm-cli/issues">Issues</a>
+      <a href="https://github.com/jdanielnd/crm-cli" style="color: #6B6889;">GitHub</a>
+      <a href="https://github.com/jdanielnd/crm-cli/releases" style="color: #6B6889;">Releases</a>
+      <a href="https://github.com/jdanielnd/crm-cli/issues" style="color: #6B6889;">Issues</a>
     </div>
   </footer>
 
