@@ -655,7 +655,7 @@
     /* FAQ */
     .faq-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
       gap: 1.25rem;
     }
 
@@ -845,14 +845,19 @@
 
       section { padding: 4rem 1.5rem; }
 
-      .mcp-section {
-        border-radius: 0;
-        margin: 0 -1.5rem;
-        padding: 2.5rem 1.5rem;
-        max-width: none;
+      #ai {
+        background: var(--primary);
+        padding: 4rem 1.5rem;
       }
 
-      #ai { padding-left: 0; padding-right: 0; }
+      .mcp-section {
+        border-radius: 0;
+        margin: 0;
+        padding: 0;
+        max-width: none;
+        background: transparent;
+        border: none;
+      }
 
       .mcp-grid { grid-template-columns: 1fr; }
 
