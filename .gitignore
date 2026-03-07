@@ -1,0 +1,31 @@
+# Binary outputs
+crm
+crm-*
+*.exe
+dist/
+
+# Database files
+*.db
+*.db-wal
+*.db-shm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Test
+coverage.out
+coverage.html
+
+# Go
+vendor/
