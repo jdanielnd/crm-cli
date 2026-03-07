@@ -179,6 +179,67 @@ func TestPersonSearch_NoResults(t *testing.T) {
 	assert.Len(t, results, 0)
 }
 
+func TestPersonCreate_DuplicateEmail(t *testing.T) {
+	r := setupTestDB(t)
+	ctx := context.Background()
+
+	_, err := r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Jane",
+		Email:     ptr("jane@example.com"),
+	})
+	require.NoError(t, err)
+
+	_, err = r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Janet",
+		Email:     ptr("jane@example.com"),
+	})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, model.ErrConflict)
+	assert.Contains(t, err.Error(), "jane@example.com")
+}
+
+func TestPersonCreate_DuplicateName(t *testing.T) {
+	r := setupTestDB(t)
+	ctx := context.Background()
+
+	_, err := r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Jane",
+		LastName:  ptr("Smith"),
+	})
+	require.NoError(t, err)
+
+	_, err = r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Jane",
+		LastName:  ptr("Smith"),
+	})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, model.ErrConflict)
+	assert.Contains(t, err.Error(), "Jane")
+}
+
+func TestPersonCreate_DuplicateAllowedAfterArchive(t *testing.T) {
+	r := setupTestDB(t)
+	ctx := context.Background()
+
+	_, err := r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Jane",
+		LastName:  ptr("Smith"),
+		Email:     ptr("jane@example.com"),
+	})
+	require.NoError(t, err)
+
+	err = r.Archive(ctx, 1)
+	require.NoError(t, err)
+
+	// Should succeed since original is archived
+	_, err = r.Create(ctx, model.CreatePersonInput{
+		FirstName: "Jane",
+		LastName:  ptr("Smith"),
+		Email:     ptr("jane@example.com"),
+	})
+	require.NoError(t, err)
+}
+
 func TestPersonSearch_ArchivedExcluded(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()

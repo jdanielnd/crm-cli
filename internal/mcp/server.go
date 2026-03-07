@@ -77,6 +77,14 @@ func NewServer(db *sql.DB, version string) *server.MCPServer {
 		personUpdateHandler(pr),
 	)
 
+	s.AddTool(
+		gomcp.NewTool("crm_person_delete",
+			gomcp.WithDescription("Delete (archive) a person by ID"),
+			gomcp.WithNumber("id", gomcp.Required(), gomcp.Description("Person ID")),
+		),
+		personDeleteHandler(pr),
+	)
+
 	// Organization tools
 	s.AddTool(
 		gomcp.NewTool("crm_org_search",
@@ -362,6 +370,17 @@ func personUpdateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 			return gomcp.NewToolResultError(err.Error()), nil
 		}
 		return jsonResult(person)
+	}
+}
+
+func personDeleteHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
+	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+		id := int64(req.GetInt("id", 0))
+		err := pr.Archive(ctx, id)
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		return gomcp.NewToolResultText(fmt.Sprintf("Person #%d deleted", id)), nil
 	}
 }
 

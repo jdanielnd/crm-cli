@@ -36,8 +36,13 @@ func scanPerson(row interface{ Scan(...any) error }) (*model.Person, error) {
 	return &p, nil
 }
 
-// Create inserts a new person.
+// Create inserts a new person after checking for duplicates.
 func (r *PersonRepo) Create(ctx context.Context, input model.CreatePersonInput) (*model.Person, error) {
+	// Check for duplicate: same first_name + last_name, or same email
+	if err := r.checkDuplicate(ctx, input); err != nil {
+		return nil, err
+	}
+
 	id := uuid.New().String()
 	result, err := r.db.ExecContext(ctx,
 		`INSERT INTO people (uuid, first_name, last_name, email, phone, title, company, location, notes, org_id)
@@ -55,6 +60,37 @@ func (r *PersonRepo) Create(ctx context.Context, input model.CreatePersonInput) 
 	}
 
 	return r.FindByID(ctx, rowID)
+}
+
+func (r *PersonRepo) checkDuplicate(ctx context.Context, input model.CreatePersonInput) error {
+	// Check by email if provided
+	if input.Email != nil && *input.Email != "" {
+		var count int
+		err := r.db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM people WHERE email = ? AND archived = 0", *input.Email).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("check duplicate email: %w", err)
+		}
+		if count > 0 {
+			return fmt.Errorf("a person with email %q already exists: %w", *input.Email, model.ErrConflict)
+		}
+	}
+
+	// Check by full name if last name is provided
+	if input.LastName != nil && *input.LastName != "" {
+		var count int
+		err := r.db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM people WHERE first_name = ? AND last_name = ? AND archived = 0",
+			input.FirstName, *input.LastName).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("check duplicate name: %w", err)
+		}
+		if count > 0 {
+			return fmt.Errorf("a person named %q %q already exists: %w", input.FirstName, *input.LastName, model.ErrConflict)
+		}
+	}
+
+	return nil
 }
 
 // FindByID returns a person by ID.
