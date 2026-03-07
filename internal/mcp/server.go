@@ -202,6 +202,19 @@ func NewServer(db *sql.DB, version string) *server.MCPServer {
 		tagApplyHandler(tagr),
 	)
 
+	// Relationships
+	rr := repo.NewRelationshipRepo(db)
+	s.AddTool(
+		gomcp.NewTool("crm_person_relate",
+			gomcp.WithDescription("Create a relationship between two people"),
+			gomcp.WithNumber("person_id", gomcp.Required(), gomcp.Description("Person ID")),
+			gomcp.WithNumber("related_person_id", gomcp.Required(), gomcp.Description("Related person ID")),
+			gomcp.WithString("type", gomcp.Required(), gomcp.Description("Relationship type: colleague, friend, manager, mentor, referred-by")),
+			gomcp.WithString("notes", gomcp.Description("Optional notes about the relationship")),
+		),
+		relateHandler(rr),
+	)
+
 	// Stats
 	s.AddTool(
 		gomcp.NewTool("crm_stats",
@@ -624,6 +637,28 @@ func tagApplyHandler(tagr *repo.TagRepo) server.ToolHandlerFunc {
 			return gomcp.NewToolResultError(err.Error()), nil
 		}
 		return gomcp.NewToolResultText(fmt.Sprintf("Tagged %s #%d with %q", entityType, entityID, tagName)), nil
+	}
+}
+
+// --- Relationship handler ---
+
+func relateHandler(rr *repo.RelationshipRepo) server.ToolHandlerFunc {
+	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+		personID := int64(req.GetInt("person_id", 0))
+		relatedID := int64(req.GetInt("related_person_id", 0))
+		relType := req.GetString("type", "")
+		notes := req.GetString("notes", "")
+
+		var notesPtr *string
+		if notes != "" {
+			notesPtr = &notes
+		}
+
+		rel, err := rr.Create(ctx, personID, relatedID, relType, notesPtr)
+		if err != nil {
+			return gomcp.NewToolResultError(err.Error()), nil
+		}
+		return jsonResult(rel)
 	}
 }
 
