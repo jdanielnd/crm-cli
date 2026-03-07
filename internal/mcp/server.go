@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/model"
@@ -283,7 +285,31 @@ func argInt64(args map[string]any, key string) (int64, bool) {
 	if !ok {
 		return 0, false
 	}
+	if f != math.Trunc(f) || f > math.MaxInt64 || f < math.MinInt64 {
+		return 0, false
+	}
 	return int64(f), true
+}
+
+func requireID(req gomcp.CallToolRequest, key string) (int64, *gomcp.CallToolResult) {
+	id := int64(req.GetInt(key, 0))
+	if id <= 0 {
+		return 0, gomcp.NewToolResultError(fmt.Sprintf("%s must be a positive integer", key))
+	}
+	return id, nil
+}
+
+func mcpError(err error) (*gomcp.CallToolResult, error) {
+	switch {
+	case errors.Is(err, model.ErrNotFound):
+		return gomcp.NewToolResultError("not found"), nil
+	case errors.Is(err, model.ErrConflict):
+		return gomcp.NewToolResultError("conflict: " + err.Error()), nil
+	case errors.Is(err, model.ErrValidation):
+		return gomcp.NewToolResultError("validation error: " + err.Error()), nil
+	default:
+		return gomcp.NewToolResultError("internal error"), nil
+	}
 }
 
 // --- Person handlers ---
@@ -294,7 +320,7 @@ func personSearchHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 		limit := req.GetInt("limit", 20)
 		people, err := pr.Search(ctx, query, limit)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(people)
 	}
@@ -302,10 +328,13 @@ func personSearchHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 
 func personGetHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("id", 0))
+		id, errResult := requireID(req, "id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		person, err := pr.FindByID(ctx, id)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(person)
 	}
@@ -325,7 +354,7 @@ func personCreateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 		}
 		person, err := pr.Create(ctx, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(person)
 	}
@@ -333,7 +362,10 @@ func personCreateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 
 func personUpdateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("id", 0))
+		id, errResult := requireID(req, "id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		args := req.GetArguments()
 		input := model.UpdatePersonInput{}
 
@@ -367,7 +399,7 @@ func personUpdateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 
 		person, err := pr.Update(ctx, id, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(person)
 	}
@@ -375,10 +407,13 @@ func personUpdateHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 
 func personDeleteHandler(pr *repo.PersonRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("id", 0))
+		id, errResult := requireID(req, "id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		err := pr.Archive(ctx, id)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return gomcp.NewToolResultText(fmt.Sprintf("Person #%d deleted", id)), nil
 	}
@@ -392,7 +427,7 @@ func orgSearchHandler(or *repo.OrgRepo) server.ToolHandlerFunc {
 		limit := req.GetInt("limit", 20)
 		orgs, err := or.Search(ctx, query, limit)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(orgs)
 	}
@@ -400,10 +435,13 @@ func orgSearchHandler(or *repo.OrgRepo) server.ToolHandlerFunc {
 
 func orgGetHandler(or *repo.OrgRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("id", 0))
+		id, errResult := requireID(req, "id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		org, err := or.FindByID(ctx, id)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(org)
 	}
@@ -445,7 +483,7 @@ func interactionLogHandler(ir *repo.InteractionRepo) server.ToolHandlerFunc {
 
 		interaction, err := ir.Create(ctx, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(interaction)
 	}
@@ -465,7 +503,7 @@ func interactionListHandler(ir *repo.InteractionRepo) server.ToolHandlerFunc {
 
 		interactions, err := ir.FindAll(ctx, filters)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(interactions)
 	}
@@ -484,28 +522,28 @@ func searchHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionRe
 		if entityType == "" || entityType == "person" {
 			people, err := pr.Search(ctx, query, limit)
 			if err != nil {
-				return gomcp.NewToolResultError(err.Error()), nil
+				return mcpError(err)
 			}
 			results["people"] = people
 		}
 		if entityType == "" || entityType == "organization" {
 			orgs, err := or.Search(ctx, query, limit)
 			if err != nil {
-				return gomcp.NewToolResultError(err.Error()), nil
+				return mcpError(err)
 			}
 			results["organizations"] = orgs
 		}
 		if entityType == "" || entityType == "interaction" {
 			interactions, err := ir.Search(ctx, query, limit)
 			if err != nil {
-				return gomcp.NewToolResultError(err.Error()), nil
+				return mcpError(err)
 			}
 			results["interactions"] = interactions
 		}
 		if entityType == "" || entityType == "deal" {
 			deals, err := dr.Search(ctx, query, limit)
 			if err != nil {
-				return gomcp.NewToolResultError(err.Error()), nil
+				return mcpError(err)
 			}
 			results["deals"] = deals
 		}
@@ -518,10 +556,13 @@ func searchHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionRe
 
 func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionRepo, dr *repo.DealRepo, tr *repo.TaskRepo, rr *repo.RelationshipRepo, tagr *repo.TagRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("person_id", 0))
+		id, errResult := requireID(req, "person_id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		person, err := pr.FindByID(ctx, id)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 
 		result := map[string]any{"person": person}
@@ -529,30 +570,30 @@ func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionR
 		if person.OrgID != nil {
 			org, err := or.FindByID(ctx, *person.OrgID)
 			if err != nil {
-				return gomcp.NewToolResultError(err.Error()), nil
+				return mcpError(err)
 			}
 			result["organization"] = org
 		}
 
 		interactions, err := ir.FindAll(ctx, model.InteractionFilters{PersonID: &person.ID, Limit: 10})
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		if len(interactions) > 0 {
 			result["recent_interactions"] = interactions
 		}
 
-		deals, err := dr.FindAll(ctx, model.DealFilters{PersonID: &person.ID})
+		deals, err := dr.FindAll(ctx, model.DealFilters{PersonID: &person.ID, Limit: 50})
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		if len(deals) > 0 {
 			result["deals"] = deals
 		}
 
-		tasks, err := tr.FindAll(ctx, model.TaskFilters{PersonID: &person.ID})
+		tasks, err := tr.FindAll(ctx, model.TaskFilters{PersonID: &person.ID, Limit: 50})
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		if len(tasks) > 0 {
 			result["tasks"] = tasks
@@ -560,7 +601,7 @@ func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionR
 
 		rels, err := rr.FindForPerson(ctx, person.ID)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		if len(rels) > 0 {
 			result["relationships"] = rels
@@ -568,7 +609,7 @@ func contextHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionR
 
 		tags, err := tagr.GetForEntity(ctx, "person", person.ID)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		if len(tags) > 0 {
 			result["tags"] = tags
@@ -601,7 +642,7 @@ func dealCreateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 
 		deal, err := dr.Create(ctx, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(deal)
 	}
@@ -609,7 +650,10 @@ func dealCreateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 
 func dealUpdateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		id := int64(req.GetInt("id", 0))
+		id, errResult := requireID(req, "id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		args := req.GetArguments()
 		input := model.UpdateDealInput{}
 
@@ -631,7 +675,7 @@ func dealUpdateHandler(dr *repo.DealRepo) server.ToolHandlerFunc {
 
 		deal, err := dr.Update(ctx, id, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(deal)
 	}
@@ -658,7 +702,7 @@ func taskCreateHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 
 		task, err := tr.Create(ctx, input)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(task)
 	}
@@ -667,7 +711,7 @@ func taskCreateHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 func taskListHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
 		filters := model.TaskFilters{
-			Limit:            req.GetInt("limit", 0),
+			Limit:            req.GetInt("limit", 50),
 			Overdue:          req.GetBool("overdue", false),
 			IncludeCompleted: req.GetBool("include_completed", false),
 		}
@@ -678,7 +722,7 @@ func taskListHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 
 		tasks, err := tr.FindAll(ctx, filters)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(tasks)
 	}
@@ -689,12 +733,15 @@ func taskListHandler(tr *repo.TaskRepo) server.ToolHandlerFunc {
 func tagApplyHandler(tagr *repo.TagRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
 		entityType := req.GetString("entity_type", "")
-		entityID := int64(req.GetInt("entity_id", 0))
+		entityID, errResult := requireID(req, "entity_id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		tagName := req.GetString("tag", "")
 
 		err := tagr.Apply(ctx, entityType, entityID, tagName)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return gomcp.NewToolResultText(fmt.Sprintf("Tagged %s #%d with %q", entityType, entityID, tagName)), nil
 	}
@@ -704,8 +751,14 @@ func tagApplyHandler(tagr *repo.TagRepo) server.ToolHandlerFunc {
 
 func relateHandler(rr *repo.RelationshipRepo) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		personID := int64(req.GetInt("person_id", 0))
-		relatedID := int64(req.GetInt("related_person_id", 0))
+		personID, errResult := requireID(req, "person_id")
+		if errResult != nil {
+			return errResult, nil
+		}
+		relatedID, errResult := requireID(req, "related_person_id")
+		if errResult != nil {
+			return errResult, nil
+		}
 		relType := req.GetString("type", "")
 		notes := req.GetString("notes", "")
 
@@ -716,7 +769,7 @@ func relateHandler(rr *repo.RelationshipRepo) server.ToolHandlerFunc {
 
 		rel, err := rr.Create(ctx, personID, relatedID, relType, notesPtr)
 		if err != nil {
-			return gomcp.NewToolResultError(err.Error()), nil
+			return mcpError(err)
 		}
 		return jsonResult(rel)
 	}

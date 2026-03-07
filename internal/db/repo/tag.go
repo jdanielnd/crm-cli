@@ -62,6 +62,19 @@ func (r *TagRepo) Apply(ctx context.Context, entityType string, entityID int64, 
 		return fmt.Errorf("invalid entity type %q: %w", entityType, model.ErrValidation)
 	}
 
+	// Verify entity exists. Table name is safe — entityType is validated above.
+	tableMap := map[string]string{
+		"person": "people", "organization": "organizations",
+		"deal": "deals", "interaction": "interactions",
+	}
+	table := tableMap[entityType]
+	var exists int
+	err := r.db.QueryRowContext(ctx,
+		fmt.Sprintf("SELECT 1 FROM %s WHERE id = ? AND archived = 0", table), entityID).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("%s %d: %w", entityType, entityID, model.ErrNotFound)
+	}
+
 	tag, err := r.FindOrCreate(ctx, tagName)
 	if err != nil {
 		return err

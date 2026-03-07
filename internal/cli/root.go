@@ -67,7 +67,7 @@ func openDB() (*sql.DB, error) {
 			return nil, fmt.Errorf("get home directory: %w", err)
 		}
 		dir := filepath.Join(home, ".crm")
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0700); err != nil {
 			return nil, fmt.Errorf("create data directory: %w", err)
 		}
 		dbPath = filepath.Join(dir, "crm.db")
@@ -75,7 +75,7 @@ func openDB() (*sql.DB, error) {
 
 	// Ensure parent directory exists
 	dir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("create directory %s: %w", dir, err)
 	}
 

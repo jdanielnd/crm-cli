@@ -245,6 +245,29 @@ func ValidEntityType(t string) bool {
 // Interaction types
 var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 
+// ValidInteractionType checks if the given type is valid.
+func ValidInteractionType(t string) bool {
+	for _, it := range InteractionTypes {
+		if it == t {
+			return true
+		}
+	}
+	return false
+}
+
+// InteractionDirections lists valid interaction directions.
+var InteractionDirections = []string{"inbound", "outbound"}
+
+// ValidInteractionDirection checks if the given direction is valid.
+func ValidInteractionDirection(d string) bool {
+	for _, id := range InteractionDirections {
+		if id == d {
+			return true
+		}
+	}
+	return false
+}
+
 // Deal stages
 var DealStages = []string{"lead", "prospect", "proposal", "negotiation", "won", "lost"}
 

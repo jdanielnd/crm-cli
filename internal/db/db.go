@@ -99,6 +99,8 @@ func runMigrations(db *sql.DB) error {
 			return fmt.Errorf("execute migration %s: %w", entry.Name(), err)
 		}
 
+		// PRAGMA user_version does not support ? placeholders in SQLite.
+		// version is an internal loop counter, never from user input.
 		if _, err := tx.Exec(fmt.Sprintf("PRAGMA user_version = %d", version)); err != nil {
 			_ = tx.Rollback()
 			return fmt.Errorf("set user_version to %d: %w", version, err)

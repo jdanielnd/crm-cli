@@ -36,6 +36,13 @@ func scanInteraction(row interface{ Scan(...any) error }) (*model.Interaction, e
 
 // Create inserts a new interaction and links it to people.
 func (r *InteractionRepo) Create(ctx context.Context, input model.CreateInteractionInput) (*model.Interaction, error) {
+	if !model.ValidInteractionType(input.Type) {
+		return nil, fmt.Errorf("invalid interaction type %q: %w", input.Type, model.ErrValidation)
+	}
+	if input.Direction != nil && *input.Direction != "" && !model.ValidInteractionDirection(*input.Direction) {
+		return nil, fmt.Errorf("invalid direction %q: %w", *input.Direction, model.ErrValidation)
+	}
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin transaction: %w", err)
