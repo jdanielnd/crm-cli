@@ -166,6 +166,48 @@ func (r *InteractionRepo) FindAll(ctx context.Context, filters model.Interaction
 	return interactions, nil
 }
 
+// Search finds interactions matching a full-text query.
+func (r *InteractionRepo) Search(ctx context.Context, query string, limit int) ([]*model.Interaction, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
+	sqlStr := fmt.Sprintf(
+		`SELECT %s FROM interactions WHERE archived = 0 AND id IN (SELECT rowid FROM interactions_fts WHERE interactions_fts MATCH ?) ORDER BY occurred_at DESC LIMIT ?`,
+		interactionColumns,
+	)
+
+	rows, err := r.db.QueryContext(ctx, sqlStr, ftsQuery, limit)
+	if err != nil {
+		return nil, fmt.Errorf("search interactions: %w", err)
+	}
+	defer rows.Close()
+
+	var interactions []*model.Interaction
+	for rows.Next() {
+		i, err := scanInteraction(rows)
+		if err != nil {
+			return nil, fmt.Errorf("scan interaction: %w", err)
+		}
+		interactions = append(interactions, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate interactions: %w", err)
+	}
+	rows.Close()
+
+	for _, i := range interactions {
+		personIDs, err := r.getPersonIDs(ctx, i.ID)
+		if err != nil {
+			return nil, err
+		}
+		i.PersonIDs = personIDs
+	}
+
+	return interactions, nil
+}
+
 func (r *InteractionRepo) getPersonIDs(ctx context.Context, interactionID int64) ([]int64, error) {
 	rows, err := r.db.QueryContext(ctx,
 		"SELECT person_id FROM interaction_people WHERE interaction_id = ?", interactionID)

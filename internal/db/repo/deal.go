@@ -179,6 +179,35 @@ func (r *DealRepo) Archive(ctx context.Context, id int64) error {
 	return nil
 }
 
+// Search finds deals matching a full-text query.
+func (r *DealRepo) Search(ctx context.Context, query string, limit int) ([]*model.Deal, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, uuid, title, value, stage, person_id, org_id, notes, closed_at,
+		        archived, created_at, updated_at
+		 FROM deals WHERE archived = 0 AND id IN (SELECT rowid FROM deals_fts WHERE deals_fts MATCH ?)
+		 ORDER BY updated_at DESC LIMIT ?`,
+		ftsQuery, limit)
+	if err != nil {
+		return nil, fmt.Errorf("search deals: %w", err)
+	}
+	defer rows.Close()
+
+	var deals []*model.Deal
+	for rows.Next() {
+		d, err := scanDeal(rows)
+		if err != nil {
+			return nil, fmt.Errorf("scan deal: %w", err)
+		}
+		deals = append(deals, d)
+	}
+	return deals, rows.Err()
+}
+
 // Pipeline returns a summary of deals grouped by stage.
 func (r *DealRepo) Pipeline(ctx context.Context) ([]*model.PipelineStage, error) {
 	rows, err := r.db.QueryContext(ctx,
