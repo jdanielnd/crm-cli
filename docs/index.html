@@ -814,10 +814,14 @@
 
     /* Footer */
     footer {
+      background: var(--primary);
+      border-top: 1px solid #1E1A40;
+      padding: 3rem 2rem;
+    }
+
+    footer .footer-inner {
       max-width: var(--max-width);
       margin: 0 auto;
-      padding: 3rem 2rem;
-      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -870,7 +874,7 @@
 
       .install-snippet { flex-direction: column; align-items: flex-start; }
 
-      footer { flex-direction: column; text-align: center; }
+      footer .footer-inner { flex-direction: column; text-align: center; }
       footer .footer-links { justify-content: center; }
     }
   </style>
@@ -1322,12 +1326,14 @@ $ crm context 1</pre>
   </section>
 
   <!-- Footer -->
-  <footer style="background: var(--primary); border-top-color: #1E1A40;">
-    <p style="color: #6B6889;">Built by <a href="https://github.com/jdanielnd" style="color: #B0ADC0;">jdanielnd</a>. MIT License.</p>
-    <div class="footer-links">
-      <a href="https://github.com/jdanielnd/crm-cli" style="color: #6B6889;">GitHub</a>
-      <a href="https://github.com/jdanielnd/crm-cli/releases" style="color: #6B6889;">Releases</a>
-      <a href="https://github.com/jdanielnd/crm-cli/issues" style="color: #6B6889;">Issues</a>
+  <footer>
+    <div class="footer-inner">
+      <p style="color: #6B6889;">Built by <a href="https://github.com/jdanielnd" style="color: #B0ADC0;">jdanielnd</a>. MIT License.</p>
+      <div class="footer-links">
+        <a href="https://github.com/jdanielnd/crm-cli" style="color: #6B6889;">GitHub</a>
+        <a href="https://github.com/jdanielnd/crm-cli/releases" style="color: #6B6889;">Releases</a>
+        <a href="https://github.com/jdanielnd/crm-cli/issues" style="color: #6B6889;">Issues</a>
+      </div>
     </div>
   </footer>
 
