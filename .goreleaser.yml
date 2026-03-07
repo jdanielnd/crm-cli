@@ -17,11 +17,13 @@ builds:
       - -X github.com/jdanielnd/crm-cli/internal/cli.Version={{.Version}}
 
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
 
 changelog:
   sort: asc
@@ -34,15 +36,13 @@ changelog:
 checksum:
   name_template: 'checksums.txt'
 
-brews:
+homebrew_casks:
   - repository:
       owner: jdanielnd
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     name: crm
     homepage: "https://github.com/jdanielnd/crm-cli"
     description: "Local-first personal CRM for the terminal"
-    license: "MIT"
-    install: |
-      bin.install "crm"
-    test: |
-      system "#{bin}/crm", "--version"
+    binaries:
+      - crm
