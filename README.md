@@ -1,8 +1,28 @@
-# crm
+# crm — your contacts, in your terminal.
 
-A local-first personal CRM for the terminal. Manage contacts, organizations, interactions, deals, and tasks from the command line. Ships with a built-in [MCP server](https://modelcontextprotocol.io/) so AI agents like Claude can query and update your CRM directly.
+![crm banner](.github/banner-crm-cli.png)
+
+[![CI](https://github.com/jdanielnd/crm-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/jdanielnd/crm-cli/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jdanielnd/crm-cli)](https://goreportcard.com/report/github.com/jdanielnd/crm-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A local-first personal CRM that lives in your terminal. Manage contacts, organizations, interactions, deals, and tasks — all from the command line. Ships with a built-in [MCP server](https://modelcontextprotocol.io/) so AI agents like Claude can read and update your CRM directly.
 
 Single static binary. SQLite database. No cloud. No accounts. Your data stays on your machine.
+
+## Features
+
+- **People & Organizations** — contacts with full profiles, linked to companies
+- **Interaction Log** — track calls, emails, meetings, notes, and messages
+- **Deals & Pipeline** — sales opportunities with stages, values, and a pipeline view
+- **Tasks** — follow-ups with due dates, priorities, and completion tracking
+- **Tags** — labels on any entity for flexible organization
+- **Relationships** — person-to-person links (colleague, mentor, referred-by, …)
+- **Full-Text Search** — find anything across all entities instantly
+- **Context Briefing** — one command to get everything about a person before a meeting
+- **AI-Ready** — built-in MCP server for Claude and other AI agents
+- **Multiple Output Formats** — table, JSON, CSV, TSV — pipe into anything
+- **Zero Dependencies** — single binary, pure-Go SQLite, runs anywhere
 
 ## Install
 
@@ -35,22 +55,6 @@ crm context 1
 # See your dashboard
 crm status
 ```
-
-## What It Does
-
-**People** — contacts with name, email, phone, title, company, location, notes, and an AI-maintained summary field
-
-**Organizations** — companies and groups, linked to people
-
-**Interactions** — activity log for calls, emails, meetings, notes, and messages
-
-**Deals** — sales opportunities with value, stage tracking, and pipeline view
-
-**Tasks** — follow-ups with due dates, priorities, and completion tracking
-
-**Tags** — labels you can apply to any entity
-
-Plus: person-to-person relationships, full-text search across everything, and custom fields.
 
 ## Commands
 
@@ -138,16 +142,16 @@ crm search "jane"                        # searches people, orgs, interactions, 
 crm search "roadmap" --type interaction  # filter by entity type
 ```
 
-### Context
+### Context Briefing
 
 ```bash
 crm context 1                            # full briefing by person ID
 crm context "Jane Smith"                 # or by name
 ```
 
-Returns person profile, organization, recent interactions, open deals, open tasks, relationships, and tags — everything you need before a meeting.
+Returns person profile, organization, recent interactions, open deals, pending tasks, relationships, and tags — everything you need before a meeting.
 
-### Status
+### Dashboard
 
 ```bash
 crm status
@@ -160,19 +164,21 @@ Shows contact/org counts, open deals with total value, task counts, overdue item
 Every command supports `--format` / `-f`:
 
 ```bash
-crm person list                          # table (default)
-crm person list -f json                  # JSON
+crm person list                          # table (default in TTY)
+crm person list -f json                  # JSON (default when piped)
 crm person list -f csv                   # CSV
 crm person list -f tsv                   # TSV
 ```
 
-Use `-q` / `--quiet` for minimal output (just IDs), useful for piping:
+Use `-q` / `--quiet` for minimal output (just IDs), useful for scripting:
 
 ```bash
 crm person list --tag vip -q | xargs -I{} crm tag apply person {} "priority"
 ```
 
 ## Piping & Composition
+
+`crm` follows Unix conventions — data to stdout, messages to stderr, structured exit codes — so it plays well with other tools:
 
 ```bash
 # Bulk tag everyone at an org
@@ -192,7 +198,7 @@ Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10`
 
 ## AI Integration (MCP Server)
 
-`crm` includes a built-in MCP server for AI agent integration. Add it to your Claude Code config:
+`crm` includes a built-in [MCP](https://modelcontextprotocol.io/) server so AI agents can query and update your CRM over a structured protocol. Add it to your Claude Code or Claude Desktop config:
 
 ```json
 {
@@ -213,7 +219,7 @@ Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10`
 | `crm_person_get` | Get full details for a person |
 | `crm_person_create` | Create a new person |
 | `crm_person_update` | Update person fields |
-| `crm_person_update_summary` | Update AI-maintained summary |
+| `crm_person_delete` | Delete (archive) a person |
 | `crm_person_relate` | Create relationship between people |
 | `crm_org_search` | Search organizations |
 | `crm_org_get` | Get org details with members |
@@ -230,7 +236,7 @@ Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10`
 
 ### Example AI Workflow
 
-After a meeting, you tell Claude:
+After a meeting, tell Claude:
 
 > "Just had a great meeting with Jane. We agreed on the timeline, she'll sign next week."
 
@@ -238,7 +244,7 @@ Claude can:
 1. Log the interaction with `crm_interaction_log`
 2. Update the deal stage with `crm_deal_update`
 3. Create a follow-up task with `crm_task_create`
-4. Update Jane's summary with `crm_person_update_summary`
+4. Update Jane's summary with `crm_person_update`
 
 The `summary` field on contacts acts as a living dossier that AI agents maintain — reading it before meetings for context, updating it after interactions with new facts and preferences.
 
@@ -258,13 +264,13 @@ The database and directory are auto-created on first use.
 
 ### iCloud Sync (macOS)
 
-Point your database to iCloud Drive for backup across machines:
+Point your database to iCloud Drive for automatic backup across machines:
 
 ```bash
 export CRM_DB="$HOME/Library/Mobile Documents/com~apple~CloudDocs/crm/crm.db"
 ```
 
-SQLite WAL mode handles concurrent reads, but avoid running on two machines simultaneously against the same file.
+SQLite WAL mode handles concurrent reads well, but avoid writing from two machines simultaneously.
 
 ## Building from Source
 
@@ -274,6 +280,8 @@ cd crm-cli
 go build -o crm ./cmd/crm
 go test ./...
 ```
+
+Requires Go 1.23+. No CGO — builds anywhere Go runs.
 
 ## Tech Stack
 
