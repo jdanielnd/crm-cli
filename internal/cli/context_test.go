@@ -19,11 +19,9 @@ func TestContextByID(t *testing.T) {
 	stdout, _, code := crm(t, dbPath, "context", "1", "-f", "json")
 	assert.Equal(t, 0, code)
 
-	var data []map[string]any
-	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
-	assert.Len(t, data, 1)
+	var result map[string]any
+	require.NoError(t, json.Unmarshal([]byte(stdout), &result))
 
-	result := data[0]
 	assert.NotNil(t, result["person"])
 	assert.NotNil(t, result["tags"])
 	assert.NotNil(t, result["recent_interactions"])
@@ -37,11 +35,10 @@ func TestContextByName(t *testing.T) {
 	stdout, _, code := crm(t, dbPath, "context", "Jane", "-f", "json")
 	assert.Equal(t, 0, code)
 
-	var data []map[string]any
-	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
-	assert.Len(t, data, 1)
+	var result map[string]any
+	require.NoError(t, json.Unmarshal([]byte(stdout), &result))
 
-	person := data[0]["person"].(map[string]any)
+	person := result["person"].(map[string]any)
 	assert.Equal(t, "Jane", person["first_name"])
 }
 

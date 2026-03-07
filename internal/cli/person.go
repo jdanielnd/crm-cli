@@ -89,6 +89,7 @@ func registerPersonCommands(rootCmd *cobra.Command) {
 
 func personAddCmd() *cobra.Command {
 	var email, phone, title, company, location, notes string
+	var orgID int64
 
 	cmd := &cobra.Command{
 		Use:   "add <name>",
@@ -112,6 +113,9 @@ func personAddCmd() *cobra.Command {
 				Location:  nilIfEmpty(location),
 				Notes:     nilIfEmpty(notes),
 			}
+			if cmd.Flags().Changed("org") {
+				input.OrgID = &orgID
+			}
 
 			r := repo.NewPersonRepo(db)
 			person, err := r.Create(cmd.Context(), input)
@@ -130,6 +134,7 @@ func personAddCmd() *cobra.Command {
 	cmd.Flags().StringVar(&company, "company", "", "company name")
 	cmd.Flags().StringVar(&location, "location", "", "location")
 	cmd.Flags().StringVar(&notes, "notes", "", "notes")
+	cmd.Flags().Int64Var(&orgID, "org", 0, "organization ID")
 
 	return cmd
 }
@@ -200,6 +205,7 @@ func personShowCmd() *cobra.Command {
 
 func personEditCmd() *cobra.Command {
 	var firstName, lastName, email, phone, title, company, location, notes string
+	var orgID int64
 
 	cmd := &cobra.Command{
 		Use:   "edit <id>",
@@ -242,6 +248,9 @@ func personEditCmd() *cobra.Command {
 			if cmd.Flags().Changed("notes") {
 				input.Notes = &notes
 			}
+			if cmd.Flags().Changed("org") {
+				input.OrgID = &orgID
+			}
 
 			r := repo.NewPersonRepo(db)
 			person, err := r.Update(cmd.Context(), id, input)
@@ -262,6 +271,7 @@ func personEditCmd() *cobra.Command {
 	cmd.Flags().StringVar(&company, "company", "", "company name")
 	cmd.Flags().StringVar(&location, "location", "", "location")
 	cmd.Flags().StringVar(&notes, "notes", "", "notes")
+	cmd.Flags().Int64Var(&orgID, "org", 0, "organization ID")
 
 	return cmd
 }

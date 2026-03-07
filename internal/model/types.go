@@ -153,10 +153,11 @@ type UpdateDealInput struct {
 
 // DealFilters holds optional filters for listing deals.
 type DealFilters struct {
-	Stage    *string
-	PersonID *int64
-	OrgID    *int64
-	Limit    int
+	Stage         *string
+	PersonID      *int64
+	OrgID         *int64
+	ExcludeClosed bool
+	Limit         int
 }
 
 // PipelineStage represents a summary of deals in a stage.

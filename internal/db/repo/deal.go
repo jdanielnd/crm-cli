@@ -83,6 +83,9 @@ func (r *DealRepo) FindAll(ctx context.Context, filters model.DealFilters) ([]*m
 		query += " AND org_id = ?"
 		args = append(args, *filters.OrgID)
 	}
+	if filters.ExcludeClosed {
+		query += " AND stage NOT IN ('won', 'lost')"
+	}
 
 	query += " ORDER BY created_at DESC"
 

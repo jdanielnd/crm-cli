@@ -133,6 +133,7 @@ func dealListCmd() *cobra.Command {
 	var stage string
 	var personID, orgID int64
 	var limit int
+	var open bool
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -144,7 +145,7 @@ func dealListCmd() *cobra.Command {
 			}
 			defer db.Close()
 
-			filters := model.DealFilters{Limit: limit}
+			filters := model.DealFilters{Limit: limit, ExcludeClosed: open}
 			if stage != "" {
 				filters.Stage = &stage
 			}
@@ -169,6 +170,7 @@ func dealListCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&personID, "person", 0, "filter by person ID")
 	cmd.Flags().Int64Var(&orgID, "org", 0, "filter by organization ID")
 	cmd.Flags().IntVar(&limit, "limit", 0, "max results")
+	cmd.Flags().BoolVar(&open, "open", false, "show only open deals (exclude won/lost)")
 
 	return cmd
 }

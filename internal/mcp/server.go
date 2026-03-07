@@ -104,6 +104,7 @@ func NewServer(db *sql.DB, version string) *server.MCPServer {
 			gomcp.WithString("content", gomcp.Description("Content/body")),
 			gomcp.WithString("direction", gomcp.Description("Direction: inbound or outbound")),
 			gomcp.WithString("occurred_at", gomcp.Description("When it occurred (ISO 8601)")),
+			gomcp.WithArray("person_ids", gomcp.Description("Array of person IDs to link this interaction to")),
 		),
 		interactionLogHandler(ir),
 	)

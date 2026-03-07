@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -51,9 +53,10 @@ func registerContextCommand(rootCmd *cobra.Command) {
 			result["person"] = personToMap(person)
 
 			// Organization
+			var org *model.Organization
 			if person.OrgID != nil {
 				or := repo.NewOrgRepo(db)
-				org, err := or.FindByID(ctx, *person.OrgID)
+				org, err = or.FindByID(ctx, *person.OrgID)
 				if err == nil {
 					result["organization"] = orgToMap(org)
 				}
@@ -110,12 +113,101 @@ func registerContextCommand(rootCmd *cobra.Command) {
 				result["tags"] = tagNames
 			}
 
-			// Output as a single-item array for consistency
-			data := []map[string]any{result}
-			cols := []format.ColumnDef{
-				{Header: "Person", Field: "person"},
+			// JSON/CSV/TSV: output as structured data
+			f := resolveFormat()
+			if f == format.FormatJSON || f == format.FormatCSV || f == format.FormatTSV {
+				enc := json.NewEncoder(os.Stdout)
+				enc.SetIndent("", "  ")
+				return enc.Encode(result)
 			}
-			return format.Output(os.Stdout, resolveFormat(), data, cols, flagQuiet)
+
+			// Table/human-readable: custom formatted output
+			w := os.Stdout
+			name := person.FirstName
+			if person.LastName != nil {
+				name += " " + *person.LastName
+			}
+			fmt.Fprintf(w, "# %s (ID: %d)\n", name, person.ID)
+
+			if person.Email != nil {
+				fmt.Fprintf(w, "  Email: %s\n", *person.Email)
+			}
+			if person.Phone != nil {
+				fmt.Fprintf(w, "  Phone: %s\n", *person.Phone)
+			}
+			if person.Title != nil {
+				fmt.Fprintf(w, "  Title: %s\n", *person.Title)
+			}
+			if person.Company != nil {
+				fmt.Fprintf(w, "  Company: %s\n", *person.Company)
+			}
+			if person.Location != nil {
+				fmt.Fprintf(w, "  Location: %s\n", *person.Location)
+			}
+			if org != nil {
+				fmt.Fprintf(w, "  Organization: %s (#%d)\n", org.Name, org.ID)
+			}
+			if person.Summary != nil {
+				fmt.Fprintf(w, "  Summary: %s\n", *person.Summary)
+			}
+
+			if tagNames, ok := result["tags"].([]string); ok && len(tagNames) > 0 {
+				fmt.Fprintf(w, "\nTags: %s\n", strings.Join(tagNames, ", "))
+			}
+
+			if len(interactions) > 0 {
+				fmt.Fprintf(w, "\nRecent Interactions (%d):\n", len(interactions))
+				for _, i := range interactions {
+					subject := ""
+					if i.Subject != nil {
+						subject = *i.Subject
+					}
+					dir := ""
+					if i.Direction != nil {
+						dir = " [" + *i.Direction + "]"
+					}
+					fmt.Fprintf(w, "  #%-4d %s: %s%s (%s)\n", i.ID, i.Type, subject, dir, i.OccurredAt)
+				}
+			}
+
+			if len(deals) > 0 {
+				fmt.Fprintf(w, "\nDeals (%d):\n", len(deals))
+				for _, d := range deals {
+					value := ""
+					if d.Value != nil {
+						value = fmt.Sprintf(" $%.0f", *d.Value)
+					}
+					fmt.Fprintf(w, "  #%-4d %s [%s]%s\n", d.ID, d.Title, d.Stage, value)
+				}
+			}
+
+			if len(tasks) > 0 {
+				fmt.Fprintf(w, "\nOpen Tasks (%d):\n", len(tasks))
+				for _, t := range tasks {
+					due := ""
+					if t.DueAt != nil {
+						due = " (due " + *t.DueAt + ")"
+					}
+					fmt.Fprintf(w, "  #%-4d %s [%s]%s\n", t.ID, t.Title, t.Priority, due)
+				}
+			}
+
+			if len(rels) > 0 {
+				fmt.Fprintf(w, "\nRelationships (%d):\n", len(rels))
+				for _, rel := range rels {
+					otherID := rel.RelatedPersonID
+					if otherID == person.ID {
+						otherID = rel.PersonID
+					}
+					note := ""
+					if rel.Notes != nil {
+						note = " — " + *rel.Notes
+					}
+					fmt.Fprintf(w, "  Person #%d (%s)%s\n", otherID, rel.Type, note)
+				}
+			}
+
+			return nil
 		},
 	}
 
