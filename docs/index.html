@@ -509,6 +509,149 @@
       line-height: 1.6;
     }
 
+    /* Use cases tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .chat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-header .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .chat-header span {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .chat-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 85%;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg .bubble {
+      padding: 0.85rem 1.15rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .chat-msg.user .bubble {
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.assistant .bubble {
+      background: #F0EFF5;
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-msg .bubble .tool-call {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(252, 87, 52, 0.1);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin: 0.25rem 0.15rem;
+    }
+
+    .chat-msg.assistant .bubble .tool-call {
+      background: rgba(252, 87, 52, 0.08);
+    }
+
+    .chat-scenario {
+      margin-bottom: 1.5rem;
+    }
+
+    .chat-scenario h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .chat-scenario p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
     /* FAQ */
     .faq-grid {
       display: grid;
@@ -830,6 +973,159 @@ $ crm context 1</pre>
     </div>
   </section>
 
+  <!-- Use Cases -->
+  <section id="use-cases">
+    <p class="section-label">Use Cases</p>
+    <h2 class="section-title">See it in action.</h2>
+    <p class="section-desc">
+      Real examples of how crm-cli works with Claude across different workflows.
+    </p>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('personal')">Networking</button>
+      <button class="tab-btn" onclick="switchTab('sales')">Sales</button>
+      <button class="tab-btn" onclick="switchTab('founder')">Founder</button>
+    </div>
+
+    <!-- Personal / Networking -->
+    <div class="tab-panel active" id="tab-personal">
+      <div class="chat-scenario">
+        <h3>After a conference</h3>
+        <p>You met several people at a conference and want to log them before you forget.</p>
+      </div>
+      <div class="chat">
+        <div class="chat-header">
+          <div class="avatar">C</div>
+          <span>Claude</span>
+        </div>
+        <div class="chat-body">
+          <div class="chat-msg user">
+            <div class="bubble">I just got back from ReactConf. Met a few people I want to remember: Sarah Chen, she's a staff engineer at Vercel, we talked about server components. Also met David Park from Linear, he's their head of design. And Julia Torres, freelance consultant, she might be a great mentor — her email is julia@torres.dev</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              I'll add all three to your CRM and log the context from the conference.
+              <br><br>
+              <span class="tool-call">crm_person_create</span> Sarah Chen — Staff Engineer, Vercel<br>
+              <span class="tool-call">crm_person_create</span> David Park — Head of Design, Linear<br>
+              <span class="tool-call">crm_person_create</span> Julia Torres — Freelance Consultant<br>
+              <span class="tool-call">crm_interaction_log</span> Note: "Met at ReactConf" for all three<br>
+              <span class="tool-call">crm_person_relate</span> Julia Torres → potential mentor<br>
+              <span class="tool-call">crm_tag_apply</span> "reactconf-2026" on all three
+              <br><br>
+              Done! All three are in your CRM, tagged with "reactconf-2026". I noted Julia as a potential mentor. Want me to set follow-up reminders?
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="bubble">Yes, remind me to email Sarah and David next week, and set up a coffee chat with Julia within 2 weeks.</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              <span class="tool-call">crm_task_create</span> "Email Sarah Chen — follow up on server components" — due Mar 14<br>
+              <span class="tool-call">crm_task_create</span> "Email David Park — follow up from ReactConf" — due Mar 14<br>
+              <span class="tool-call">crm_task_create</span> "Schedule coffee chat with Julia Torres" — due Mar 21, high priority
+              <br><br>
+              All set. Three follow-ups created. I gave the Julia one high priority since mentorship connections are valuable.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales -->
+    <div class="tab-panel" id="tab-sales">
+      <div class="chat-scenario">
+        <h3>Managing a sales pipeline</h3>
+        <p>Tracking deals, logging calls, and preparing for client meetings.</p>
+      </div>
+      <div class="chat">
+        <div class="chat-header">
+          <div class="avatar">C</div>
+          <span>Claude</span>
+        </div>
+        <div class="chat-body">
+          <div class="chat-msg user">
+            <div class="bubble">Just finished a demo call with Acme Corp. They loved the product, want to move forward with a $45k annual contract. The decision maker is Tom Bradley, their VP of Engineering. He wants a proposal by Friday.</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              Great news! Let me update everything.
+              <br><br>
+              <span class="tool-call">crm_interaction_log</span> Demo call with Tom Bradley — "Product demo, positive reception, $45k annual"<br>
+              <span class="tool-call">crm_deal_create</span> "Acme Corp — Annual Contract" — $45,000, stage: proposal<br>
+              <span class="tool-call">crm_person_update</span> Tom Bradley summary updated with demo feedback<br>
+              <span class="tool-call">crm_task_create</span> "Send proposal to Tom Bradley (Acme)" — due Friday, high priority
+              <br><br>
+              Deal created at $45k in the proposal stage. You have a task to send the proposal by Friday. Want me to pull up your pipeline summary?
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="bubble">Yes, show me the pipeline and any overdue tasks.</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              <span class="tool-call">crm_stats</span><br>
+              <span class="tool-call">crm_task_list</span> overdue tasks
+              <br><br>
+              <strong>Pipeline:</strong> 3 leads ($12k), 2 proposals ($67k incl. Acme), 1 negotiation ($28k). Total open: $107k across 6 deals.
+              <br><br>
+              <strong>Overdue:</strong> 1 task — "Follow up with Beta Inc on contract terms" was due 2 days ago. Want me to bump it or should I draft a follow-up?
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Founder -->
+    <div class="tab-panel" id="tab-founder">
+      <div class="chat-scenario">
+        <h3>Preparing for an investor meeting</h3>
+        <p>Pulling together context on a VC before a fundraising conversation.</p>
+      </div>
+      <div class="chat">
+        <div class="chat-header">
+          <div class="avatar">C</div>
+          <span>Claude</span>
+        </div>
+        <div class="chat-body">
+          <div class="chat-msg user">
+            <div class="bubble">I have a call with Maria Gonzalez from Sequoia in an hour. Can you brief me on our history?</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              <span class="tool-call">crm_context</span> Maria Gonzalez — full briefing
+              <br><br>
+              <strong>Maria Gonzalez</strong> — Partner at Sequoia Capital<br>
+              <strong>Org:</strong> Sequoia Capital (VC, Growth &amp; Early Stage)<br>
+              <strong>Tags:</strong> investor, series-a-target
+              <br><br>
+              <strong>History (3 interactions):</strong><br>
+              &bull; Mar 1 — Intro email via warm intro from Alex Kim<br>
+              &bull; Feb 15 — Met at SaaStr Annual, discussed market opportunity<br>
+              &bull; Feb 10 — She liked your blog post on PLG metrics (inbound)
+              <br><br>
+              <strong>Relationships:</strong> Referred by Alex Kim (angel investor)
+              <br><br>
+              <strong>Open tasks:</strong> "Send updated pitch deck" (due today, high priority)
+              <br><br>
+              Key context: she's interested in your PLG motion and asked about net revenue retention last time. Your pitch deck task is due today — have you sent it?
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="bubble">Not yet, sending now. After the call, remind me to log how it went and update the deal.</div>
+          </div>
+          <div class="chat-msg assistant">
+            <div class="bubble">
+              <span class="tool-call">crm_task_create</span> "Log call with Maria Gonzalez and update Series A deal" — due today
+              <br><br>
+              Reminder set. Good luck on the call! When you're back, just tell me how it went and I'll handle the rest.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Principles -->
   <section>
     <p class="section-label">Philosophy</p>
@@ -910,6 +1206,15 @@ $ crm context 1</pre>
       <a href="https://github.com/jdanielnd/crm-cli/issues">Issues</a>
     </div>
   </footer>
+
+  <script>
+    function switchTab(id) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
 
 </body>
 </html>
