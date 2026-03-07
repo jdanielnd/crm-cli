@@ -36,13 +36,17 @@ changelog:
 checksum:
   name_template: 'checksums.txt'
 
-homebrew_casks:
+brews:
   - repository:
       owner: jdanielnd
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     name: crm
+    directory: Formula
     homepage: "https://github.com/jdanielnd/crm-cli"
     description: "Local-first personal CRM for the terminal"
-    binaries:
-      - crm
+    license: "MIT"
+    install: |
+      bin.install "crm"
+    test: |
+      system "#{bin}/crm", "--version"
