@@ -82,6 +82,7 @@ func registerPersonCommands(rootCmd *cobra.Command) {
 	personCmd.AddCommand(personShowCmd())
 	personCmd.AddCommand(personEditCmd())
 	personCmd.AddCommand(personDeleteCmd())
+	registerRelateCommands(personCmd)
 
 	rootCmd.AddCommand(personCmd)
 }

@@ -114,10 +114,118 @@ type InteractionFilters struct {
 	Limit    int
 }
 
+// Deal represents a sales opportunity.
+type Deal struct {
+	ID        int64    `json:"id"`
+	UUID      string   `json:"uuid"`
+	Title     string   `json:"title"`
+	Value     *float64 `json:"value"`
+	Stage     string   `json:"stage"`
+	PersonID  *int64   `json:"person_id"`
+	OrgID     *int64   `json:"org_id"`
+	Notes     *string  `json:"notes"`
+	ClosedAt  *string  `json:"closed_at"`
+	Archived  bool     `json:"-"`
+	CreatedAt string   `json:"created_at"`
+	UpdatedAt string   `json:"updated_at"`
+}
+
+// CreateDealInput holds fields for creating a deal.
+type CreateDealInput struct {
+	Title    string
+	Value    *float64
+	Stage    string
+	PersonID *int64
+	OrgID    *int64
+	Notes    *string
+}
+
+// UpdateDealInput holds optional fields for updating a deal.
+type UpdateDealInput struct {
+	Title    *string
+	Value    *float64
+	Stage    *string
+	PersonID *int64
+	OrgID    *int64
+	Notes    *string
+	ClosedAt *string
+}
+
+// DealFilters holds optional filters for listing deals.
+type DealFilters struct {
+	Stage    *string
+	PersonID *int64
+	OrgID    *int64
+	Limit    int
+}
+
+// PipelineStage represents a summary of deals in a stage.
+type PipelineStage struct {
+	Stage      string  `json:"stage"`
+	Count      int     `json:"count"`
+	TotalValue float64 `json:"total_value"`
+}
+
 // Tag represents a label that can be applied to any entity.
 type Tag struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
+}
+
+// Task represents a follow-up or to-do item.
+type Task struct {
+	ID          int64   `json:"id"`
+	UUID        string  `json:"uuid"`
+	Title       string  `json:"title"`
+	Description *string `json:"description"`
+	PersonID    *int64  `json:"person_id"`
+	DealID      *int64  `json:"deal_id"`
+	DueAt       *string `json:"due_at"`
+	Priority    string  `json:"priority"`
+	Completed   bool    `json:"completed"`
+	CompletedAt *string `json:"completed_at"`
+	Archived    bool    `json:"-"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
+}
+
+// CreateTaskInput holds fields for creating a task.
+type CreateTaskInput struct {
+	Title       string
+	Description *string
+	PersonID    *int64
+	DealID      *int64
+	DueAt       *string
+	Priority    string
+}
+
+// UpdateTaskInput holds optional fields for updating a task.
+type UpdateTaskInput struct {
+	Title       *string
+	Description *string
+	PersonID    *int64
+	DealID      *int64
+	DueAt       *string
+	Priority    *string
+}
+
+// TaskFilters holds optional filters for listing tasks.
+type TaskFilters struct {
+	PersonID         *int64
+	DealID           *int64
+	Overdue          bool
+	IncludeCompleted bool
+	Limit            int
+}
+
+// Relationship represents a person-to-person link.
+type Relationship struct {
+	ID              int64   `json:"id"`
+	PersonID        int64   `json:"person_id"`
+	RelatedPersonID int64   `json:"related_person_id"`
+	Type            string  `json:"type"`
+	Notes           *string `json:"notes"`
+	CreatedAt       string  `json:"created_at"`
 }
 
 // Valid entity types for tagging.
@@ -139,8 +247,38 @@ var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 // Deal stages
 var DealStages = []string{"lead", "prospect", "proposal", "negotiation", "won", "lost"}
 
+// ValidDealStage checks if the given stage is valid.
+func ValidDealStage(s string) bool {
+	for _, ds := range DealStages {
+		if ds == s {
+			return true
+		}
+	}
+	return false
+}
+
 // Priority levels
 var Priorities = []string{"low", "medium", "high"}
 
+// ValidPriority checks if the given priority is valid.
+func ValidPriority(p string) bool {
+	for _, pr := range Priorities {
+		if pr == p {
+			return true
+		}
+	}
+	return false
+}
+
 // Relationship types
 var RelationshipTypes = []string{"colleague", "friend", "manager", "mentor", "referred-by"}
+
+// ValidRelationshipType checks if the given type is valid.
+func ValidRelationshipType(t string) bool {
+	for _, rt := range RelationshipTypes {
+		if rt == t {
+			return true
+		}
+	}
+	return false
+}
