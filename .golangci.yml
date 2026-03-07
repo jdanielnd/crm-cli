@@ -1,0 +1,20 @@
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - gocritic
+    - revive
+
+linters-settings:
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+
+issues:
+  exclude-dirs:
+    - vendor
