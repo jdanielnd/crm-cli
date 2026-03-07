@@ -1,6 +1,6 @@
 # Binary outputs
-crm
-crm-*
+/crm
+/crm-*
 *.exe
 dist/
 
