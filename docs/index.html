@@ -397,14 +397,19 @@
 
     .mcp-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 3fr 2fr;
       gap: 3rem;
       align-items: start;
     }
 
     .mcp-tools {
       display: grid;
-      gap: 0.5rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .mcp-tools { grid-template-columns: 1fr; }
     }
 
     .mcp-tool {
@@ -722,11 +727,23 @@ $ crm context 1</pre>
           </div>
           <div class="mcp-tools">
             <div class="mcp-tool"><code>crm_person_search</code> <span>Find contacts</span></div>
-            <div class="mcp-tool"><code>crm_interaction_log</code> <span>Log activities</span></div>
-            <div class="mcp-tool"><code>crm_deal_update</code> <span>Move deals forward</span></div>
-            <div class="mcp-tool"><code>crm_task_create</code> <span>Set follow-ups</span></div>
-            <div class="mcp-tool"><code>crm_context</code> <span>Full person briefing</span></div>
+            <div class="mcp-tool"><code>crm_person_get</code> <span>Get person details</span></div>
+            <div class="mcp-tool"><code>crm_person_create</code> <span>Create a person</span></div>
+            <div class="mcp-tool"><code>crm_person_update</code> <span>Update person fields</span></div>
+            <div class="mcp-tool"><code>crm_person_delete</code> <span>Archive a person</span></div>
+            <div class="mcp-tool"><code>crm_person_relate</code> <span>Link two people</span></div>
+            <div class="mcp-tool"><code>crm_org_search</code> <span>Search organizations</span></div>
+            <div class="mcp-tool"><code>crm_org_get</code> <span>Get org details</span></div>
+            <div class="mcp-tool"><code>crm_interaction_log</code> <span>Log an activity</span></div>
+            <div class="mcp-tool"><code>crm_interaction_list</code> <span>List interactions</span></div>
+            <div class="mcp-tool"><code>crm_deal_create</code> <span>Create a deal</span></div>
+            <div class="mcp-tool"><code>crm_deal_update</code> <span>Update a deal</span></div>
+            <div class="mcp-tool"><code>crm_task_create</code> <span>Create a task</span></div>
+            <div class="mcp-tool"><code>crm_task_list</code> <span>List open tasks</span></div>
+            <div class="mcp-tool"><code>crm_tag_apply</code> <span>Apply a tag</span></div>
             <div class="mcp-tool"><code>crm_search</code> <span>Cross-entity search</span></div>
+            <div class="mcp-tool"><code>crm_context</code> <span>Full person briefing</span></div>
+            <div class="mcp-tool"><code>crm_stats</code> <span>CRM summary stats</span></div>
           </div>
         </div>
         <div class="mcp-example">
