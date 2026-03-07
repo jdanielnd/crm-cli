@@ -1,16 +1,8 @@
 # crm
 
-A local-first personal CRM for the terminal. Store contacts, organizations, interactions, deals, and tasks in a local SQLite database. Every command outputs structured data (table, JSON, CSV) making it equally usable by humans and AI agents. Ships with a built-in MCP server so AI agents can search, query, and update your CRM directly.
+A local-first personal CRM for the terminal. Manage contacts, organizations, interactions, deals, and tasks from the command line. Ships with a built-in [MCP server](https://modelcontextprotocol.io/) so AI agents like Claude can query and update your CRM directly.
 
-Distributed as a single static binary — no runtime dependencies, no installers. Works on macOS, Linux, and Windows.
-
-## Core Principles
-
-- **Local-first** — SQLite database, no cloud, no accounts, your data stays on your machine
-- **AI-native** — MCP server, JSON output, `crm context` command for pre-meeting briefings
-- **Unix philosophy** — pipeable, composable, scriptable, works with `jq`, `fzf`, `xargs`
-- **Zero config** — auto-creates database on first use
-- **Single binary** — `go install` or download a release, no dependencies to manage
+Single static binary. SQLite database. No cloud. No accounts. Your data stays on your machine.
 
 ## Install
 
@@ -18,7 +10,7 @@ Distributed as a single static binary — no runtime dependencies, no installers
 # Homebrew (macOS/Linux)
 brew install jdanielnd/tap/crm
 
-# Go install
+# Go
 go install github.com/jdanielnd/crm-cli/cmd/crm@latest
 
 # Or download a binary from GitHub Releases
@@ -28,67 +20,49 @@ go install github.com/jdanielnd/crm-cli/cmd/crm@latest
 ## Quick Start
 
 ```bash
+# Add a contact
 crm person add "Jane Smith" --email jane@example.com
+
+# Add their company
 crm org add "Acme Corp" --domain acme.com
+
+# Log a call
 crm log call 1 --subject "Intro call"
-crm context 1                            # full briefing on Jane
-crm status                               # dashboard overview
+
+# Get a full briefing before your next meeting
+crm context 1
+
+# See your dashboard
+crm status
 ```
 
-## Data Model
+## What It Does
 
-Six core entities with full-text search across all of them:
+**People** — contacts with name, email, phone, title, company, location, notes, and an AI-maintained summary field
 
-**People** — contacts with name, email, phone, title, location, notes, an AI-maintained `summary` field (living dossier), plus custom fields
+**Organizations** — companies and groups, linked to people
 
-**Organizations** — companies/groups that people belong to
+**Interactions** — activity log for calls, emails, meetings, notes, and messages
 
-**Interactions** — the activity log: calls, emails, meetings, notes, messages (with timestamps, direction, content)
+**Deals** — sales opportunities with value, stage tracking, and pipeline view
 
-**Deals** — opportunities with value, stage (lead -> prospect -> proposal -> negotiation -> won/lost), linked to people/orgs
+**Tasks** — follow-ups with due dates, priorities, and completion tracking
 
-**Tasks** — follow-ups with due dates and priorities, tied to contacts or deals
+**Tags** — labels you can apply to any entity
 
-**Tags** — flat labels applicable to any entity (polymorphic tagging)
+Plus: person-to-person relationships, full-text search across everything, and custom fields.
 
-Supporting structures:
-
-- **Custom fields** — key/value pairs on any entity (birthday, github handle, etc.)
-- **Relationships** — person-to-person links (colleague, friend, manager, mentor, referred-by)
-- **Full-text search** — FTS5 indexes on people, organizations, interactions, and deals
-
-Key design decisions:
-
-- Integer IDs for human-friendly CLI use (`crm person show 42`) + UUIDs for external references
-- `occurred_at` vs `created_at` on interactions (log a call after the fact)
-- Soft-delete via `archived` flag (CRM data is precious)
-- WAL mode for concurrent access (MCP server + CLI simultaneously)
-- **AI-maintained `summary`** on People and Organizations — a living dossier that AI agents update after each interaction, separate from user-written `notes`
-
-## CLI Usage
-
-Pattern: `crm <entity> <action> [args] [flags]`
-
-### Global Flags
-
-```
---format, -f    Output format: table (default), json, csv, tsv
---quiet, -q     Minimal output (just IDs, for piping)
---verbose, -v   Verbose output
---db <path>     Alternate database path
---no-color      Disable colors
-```
+## Commands
 
 ### People
 
 ```bash
-crm person add "Jane Smith" --email jane@example.com --org "Acme Corp" --tag client
-crm person list --tag client --sort last-contacted
-crm person show 42 --with interactions
-crm person edit 42 --email new@email.com --set birthday=1990-03-15
-crm person delete 42                    # soft-delete
-crm person merge 42 43                  # merge duplicates
-crm person relate 42 43 --type colleague
+crm person add "Jane Smith" --email jane@example.com --phone 555-1234 --org 1
+crm person list                          # all contacts
+crm person list --tag vip --limit 10     # filtered
+crm person show 1                        # full details
+crm person edit 1 --title "CTO" --company "Acme Corp"
+crm person delete 1                      # soft-delete (recoverable)
 ```
 
 ### Organizations
@@ -96,220 +70,220 @@ crm person relate 42 43 --type colleague
 ```bash
 crm org add "Acme Corp" --domain acme.com --industry SaaS
 crm org list
-crm org show 5 --with people
+crm org show 1 --with-people             # show org + its members
+crm org edit 1 --domain acme.io
+crm org delete 1
 ```
 
 ### Interactions
 
 ```bash
-crm log call 42 --subject "Discussed roadmap"
-crm log email 42 --subject "Follow-up" --direction outbound
-crm log meeting 42 43 --subject "Product demo" --at "2026-03-05 14:00"
-crm log note 42                          # opens $EDITOR
-echo "Call notes" | crm log note 42 --subject "Quick check-in"
-```
-
-### Tags
-
-```bash
-crm tag list
-crm tag apply person 42 "vip"
-crm tag remove person 42 "vip"
+crm log call 1 --subject "Discussed roadmap" --content "Agreed on Q2 timeline"
+crm log email 1 --subject "Follow-up" --direction outbound
+crm log meeting 1 2 --subject "Product demo" --at "2026-03-05 14:00"
+crm log note 1 --subject "Quick check-in" --content "Seemed interested"
+crm log list --person 1 --limit 5        # recent interactions with person
 ```
 
 ### Deals
 
 ```bash
-crm deal add "Website Redesign" --value 15000 --person 42 --stage proposal
-crm deal list --stage proposal,negotiation
-crm deal edit 10 --stage won --closed-at today
+crm deal add "Website Redesign" --value 15000 --person 1 --stage proposal
+crm deal list --open                     # exclude won/lost
+crm deal list --stage proposal
+crm deal show 1
+crm deal edit 1 --stage won --closed-at 2026-03-15
+crm deal delete 1
 crm deal pipeline                        # summary by stage
 ```
 
 ### Tasks
 
 ```bash
-crm task add "Follow up on proposal" --person 42 --due "next friday" --priority high
-crm task list --overdue
-crm task done 15
+crm task add "Follow up on proposal" --person 1 --due 2026-03-14 --priority high
+crm task list                            # open tasks
+crm task list --overdue                  # past due
+crm task list --all                      # include completed
+crm task show 1
+crm task edit 1 --priority medium
+crm task done 1                          # mark completed
+crm task delete 1
 ```
+
+### Tags
+
+```bash
+crm tag apply person 1 "vip"
+crm tag apply deal 1 "q2"
+crm tag show person 1                    # tags on a person
+crm tag remove person 1 "vip"
+crm tag list                             # all tags
+crm tag delete "old-tag"                 # remove tag entirely
+```
+
+### Relationships
+
+```bash
+crm person relate 1 2 --type colleague --notes "Met at ReactConf"
+crm person relationships 1               # list all relationships
+crm person unrelate 1                    # remove by relationship ID
+```
+
+Relationship types: `colleague`, `friend`, `manager`, `mentor`, `referred-by`
 
 ### Search
 
 ```bash
-crm search "jane"                        # searches people, orgs, interactions
-crm search "roadmap" --type interaction --since 2026-01-01
+crm search "jane"                        # searches people, orgs, interactions, deals
+crm search "roadmap" --type interaction  # filter by entity type
 ```
 
 ### Context
 
 ```bash
-crm context 42                           # everything about a person in one call
+crm context 1                            # full briefing by person ID
+crm context "Jane Smith"                 # or by name
 ```
 
-Returns: person profile + org + recent interactions + open deals + open tasks + relationships + custom fields.
+Returns person profile, organization, recent interactions, open deals, open tasks, relationships, and tags — everything you need before a meeting.
 
-### Import/Export
-
-```bash
-crm import contacts.csv --type person --map "Name=first_name,Email=email"
-crm import contacts.vcf                  # vCard
-crm export people --format csv > contacts.csv
-crm export all --format json > backup.json
-```
-
-### Status Dashboard
+### Status
 
 ```bash
 crm status
-# 342 contacts | 28 organizations | 5 open deals ($47,500)
-# 3 tasks overdue | 12 interactions this week
+```
+
+Shows contact/org counts, open deals with total value, task counts, overdue items, pipeline breakdown, and recent activity.
+
+## Output Formats
+
+Every command supports `--format` / `-f`:
+
+```bash
+crm person list                          # table (default)
+crm person list -f json                  # JSON
+crm person list -f csv                   # CSV
+crm person list -f tsv                   # TSV
+```
+
+Use `-q` / `--quiet` for minimal output (just IDs), useful for piping:
+
+```bash
+crm person list --tag vip -q | xargs -I{} crm tag apply person {} "priority"
 ```
 
 ## Piping & Composition
 
 ```bash
 # Bulk tag everyone at an org
-crm person list --org "Acme Corp" -q | xargs -I{} crm tag apply person {} "acme-team"
-
-# Pipe email content into a log entry
-pbpaste | crm log email 42 --subject "Re: Proposal" --direction inbound
-
-# Chain with jq
-crm person list -f json | jq '.[] | select(.tags | contains(["vip"])) | .email'
+crm person list -f json | jq '.[] | select(.org_id == 1) | .id' | xargs -I{} crm tag apply person {} "acme-team"
 
 # Interactive selection with fzf
 crm person list -f tsv | fzf | cut -f1 | xargs crm person show
 
+# Export contacts to CSV
+crm person list -f csv > contacts.csv
+
 # Overdue task notifications
-crm task list --overdue -f json | jq -r '.[] | "OVERDUE: \(.title) — \(.person.first_name)"'
+crm task list --overdue -f json | jq -r '.[] | "OVERDUE: \(.title)"'
 ```
 
-**Exit codes:** 0=success, 1=error, 2=usage error, 3=not found, 4=conflict, 10=db error
+Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10` database error.
 
 ## AI Integration (MCP Server)
 
+`crm` includes a built-in MCP server for AI agent integration. Add it to your Claude Code config:
+
+```json
+{
+  "mcpServers": {
+    "crm": {
+      "command": "crm",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `crm_person_search` | Search people by name, email, tag, org |
+| `crm_person_get` | Get full details for a person |
+| `crm_person_create` | Create a new person |
+| `crm_person_update` | Update person fields |
+| `crm_person_update_summary` | Update AI-maintained summary |
+| `crm_person_relate` | Create relationship between people |
+| `crm_org_search` | Search organizations |
+| `crm_org_get` | Get org details with members |
+| `crm_interaction_log` | Log a call, email, meeting, or note |
+| `crm_interaction_list` | List interactions for a person |
+| `crm_search` | Cross-entity full-text search |
+| `crm_context` | Full person briefing |
+| `crm_deal_create` | Create a deal |
+| `crm_deal_update` | Update deal stage/fields |
+| `crm_task_create` | Create a task |
+| `crm_task_list` | List open tasks |
+| `crm_tag_apply` | Apply a tag |
+| `crm_stats` | CRM summary stats |
+
+### Example AI Workflow
+
+After a meeting, you tell Claude:
+
+> "Just had a great meeting with Jane. We agreed on the timeline, she'll sign next week."
+
+Claude can:
+1. Log the interaction with `crm_interaction_log`
+2. Update the deal stage with `crm_deal_update`
+3. Create a follow-up task with `crm_task_create`
+4. Update Jane's summary with `crm_person_update_summary`
+
+The `summary` field on contacts acts as a living dossier that AI agents maintain — reading it before meetings for context, updating it after interactions with new facts and preferences.
+
+## Configuration
+
+The database lives at `~/.crm/crm.db` by default. Override with:
+
 ```bash
-crm mcp serve          # stdio transport (for Claude Code, etc.)
+# Flag (highest priority)
+crm --db /path/to/crm.db person list
+
+# Environment variable
+export CRM_DB=/path/to/crm.db
 ```
 
-### MCP Tools
-
-| Tool                        | Description                                           |
-| --------------------------- | ----------------------------------------------------- |
-| `crm_person_search`         | Search people by name, email, tag, org                |
-| `crm_person_get`            | Get full details for a person                         |
-| `crm_person_create`         | Create a new person                                   |
-| `crm_person_update`         | Update person fields                                  |
-| `crm_person_update_summary` | Update the AI-maintained summary/dossier for a person |
-| `crm_org_search`            | Search organizations                                  |
-| `crm_org_get`               | Get org details with people                           |
-| `crm_interaction_log`       | Log an interaction                                    |
-| `crm_interaction_list`      | List interactions for a person/org                    |
-| `crm_search`                | Cross-entity full-text search                         |
-| `crm_context`               | Full context for a person (the briefing)              |
-| `crm_task_create`           | Create a follow-up task                               |
-| `crm_task_list`             | List open tasks                                       |
-| `crm_deal_create`           | Create a deal                                         |
-| `crm_deal_update`           | Update deal stage                                     |
-| `crm_tag_apply`             | Apply tag to entity                                   |
-| `crm_person_relate`         | Create relationship between two people                |
-| `crm_stats`                 | CRM summary stats                                     |
-
-### AI Workflow Example
-
-```
-User: "Just had a great meeting with Jane. We agreed on the timeline, she'll sign next week."
-
-AI calls:
-1. crm_interaction_log(type="meeting", person_ids=[42], subject="Timeline agreement")
-2. crm_deal_update(id=10, stage="negotiation")
-3. crm_task_create(title="Follow up on signed contract", person_id=42, due="next week")
-4. crm_person_update_summary(id=42, summary="CTO at Acme Corp. Working on $15K website
-   redesign deal. Agreed on timeline Mar 2026, expecting signed contract by mid-March.
-   Prefers async communication. Met at ReactConf 2025.")
-```
-
-## Data Directory
-
-By default the database lives at `~/.crm/crm.db`. Override with `--db <path>` or the `CRM_DB` environment variable.
-
-```
-~/.crm/
-  crm.db              # SQLite database (WAL mode)
-  backups/            # auto-backup before migrations
-```
+The database and directory are auto-created on first use.
 
 ### iCloud Sync (macOS)
 
-On macOS, you can point your database to iCloud Drive for automatic backup and cross-machine sync:
+Point your database to iCloud Drive for backup across machines:
 
 ```bash
-# Use iCloud Drive as your CRM data directory
 export CRM_DB="$HOME/Library/Mobile Documents/com~apple~CloudDocs/crm/crm.db"
-
-# Or add to your shell profile (~/.zshrc)
-echo 'export CRM_DB="$HOME/Library/Mobile Documents/com~apple~CloudDocs/crm/crm.db"' >> ~/.zshrc
 ```
 
-The database is auto-created on first use. iCloud handles syncing the file across your Macs. Since SQLite uses WAL mode, avoid running `crm` on two machines simultaneously against the same iCloud-synced file — use it as a backup/portability mechanism, not real-time sync.
+SQLite WAL mode handles concurrent reads, but avoid running on two machines simultaneously against the same file.
 
-## Technical Stack
-
-| Component     | Choice              | Why                                                    |
-| ------------- | ------------------- | ------------------------------------------------------ |
-| Language      | Go                  | Single static binary, fast startup, cross-platform     |
-| Database      | `modernc.org/sqlite`| Pure-Go SQLite, no CGO, cross-compiles cleanly         |
-| CLI framework | `cobra`             | Industry standard, subcommands, completions, man pages |
-| MCP           | `mcp-go`            | Go MCP SDK, stdio transport                            |
-| Tables        | `tablewriter`       | Terminal table formatting                              |
-| Colors        | `fatih/color`       | Terminal colors with NO_COLOR support                  |
-| Testing       | `testing` + `testify` | Standard library + assertions                        |
-
-## Project Structure
-
-```
-crm-cli/
-  cmd/
-    crm/
-      main.go                # entry point
-  internal/
-    cli/
-      root.go                # root command, global flags
-      person.go, org.go, log.go, tag.go,
-      deal.go, task.go, search.go, context.go,
-      status.go, mcp.go, relate.go
-    db/
-      db.go                  # connection, migrations, pragmas
-      migrations/            # embedded SQL migration files
-      repo/
-        person.go, org.go, interaction.go,
-        tag.go, deal.go, task.go,
-        custom_field.go, relationship.go
-    mcp/
-      server.go              # MCP server + tool definitions
-    format/
-      table.go, json.go, csv.go
-    model/
-      types.go               # domain types and constants
-      errors.go              # error types with exit codes
-  go.mod
-  go.sum
-  CLAUDE.md
-  README.md
-```
-
-## Building
+## Building from Source
 
 ```bash
+git clone https://github.com/jdanielnd/crm-cli.git
+cd crm-cli
 go build -o crm ./cmd/crm
-
-# Cross-compile
-GOOS=darwin  GOARCH=arm64 go build -o crm-darwin-arm64  ./cmd/crm
-GOOS=darwin  GOARCH=amd64 go build -o crm-darwin-amd64  ./cmd/crm
-GOOS=linux   GOARCH=amd64 go build -o crm-linux-amd64   ./cmd/crm
-GOOS=windows GOARCH=amd64 go build -o crm-windows-amd64.exe ./cmd/crm
+go test ./...
 ```
+
+## Tech Stack
+
+| Component | Choice |
+|-----------|--------|
+| Language | Go |
+| Database | SQLite via [modernc.org/sqlite](https://pkg.go.dev/modernc.org/sqlite) (pure Go, no CGO) |
+| CLI | [Cobra](https://github.com/spf13/cobra) |
+| MCP | [mcp-go](https://github.com/mark3labs/mcp-go) |
+| Search | SQLite FTS5 |
 
 ## License
 
