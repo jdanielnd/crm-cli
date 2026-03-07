@@ -664,6 +664,8 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.75rem;
+      overflow: hidden;
+      min-width: 0;
     }
 
     .faq-item h3 {
@@ -685,12 +687,17 @@
 
     .faq-item a:hover { text-decoration: underline; }
 
+    .faq-item p {
+      word-break: break-word;
+    }
+
     .faq-item code {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.8rem;
       background: #F0EFF5;
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
+      word-break: break-all;
     }
 
     @media (max-width: 768px) {
@@ -1323,6 +1330,8 @@ $ crm context 1</pre>
       <a href="https://github.com/jdanielnd/crm-cli/issues" style="color: #6B6889;">Issues</a>
     </div>
   </footer>
+
+  <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "e517b9926e6645ca81989a0dda2105d4"}'></script><!-- End Cloudflare Web Analytics -->
 
   <script>
     function switchTab(id) {
