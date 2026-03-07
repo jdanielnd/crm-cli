@@ -41,6 +41,7 @@ func NewRootCmd() *cobra.Command {
 
 	registerPersonCommands(rootCmd)
 	registerOrgCommands(rootCmd)
+	registerLogCommands(rootCmd)
 
 	return rootCmd
 }

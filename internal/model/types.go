@@ -83,6 +83,37 @@ type UpdateOrgInput struct {
 	Summary  *string
 }
 
+// Interaction represents an activity log entry.
+type Interaction struct {
+	ID         int64   `json:"id"`
+	UUID       string  `json:"uuid"`
+	Type       string  `json:"type"`
+	Subject    *string `json:"subject"`
+	Content    *string `json:"content"`
+	Direction  *string `json:"direction"`
+	OccurredAt string  `json:"occurred_at"`
+	PersonIDs  []int64 `json:"person_ids"`
+	CreatedAt  string  `json:"created_at"`
+	UpdatedAt  string  `json:"updated_at"`
+}
+
+// CreateInteractionInput holds fields for creating an interaction.
+type CreateInteractionInput struct {
+	Type       string
+	Subject    *string
+	Content    *string
+	Direction  *string
+	OccurredAt *string
+	PersonIDs  []int64
+}
+
+// InteractionFilters holds optional filters for listing interactions.
+type InteractionFilters struct {
+	PersonID *int64
+	Type     *string
+	Limit    int
+}
+
 // Interaction types
 var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 
