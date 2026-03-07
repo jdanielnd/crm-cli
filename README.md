@@ -198,7 +198,15 @@ Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10`
 
 ## AI Integration (MCP Server)
 
-`crm` includes a built-in [MCP](https://modelcontextprotocol.io/) server so AI agents can query and update your CRM over a structured protocol. Add it to your Claude Code or Claude Desktop config:
+`crm` includes a built-in [MCP](https://modelcontextprotocol.io/) server so AI agents can query and update your CRM over a structured protocol.
+
+**Claude Code** (one command):
+
+```bash
+claude mcp add crm -- crm mcp serve
+```
+
+**Claude Desktop** (add to config manually):
 
 ```json
 {
