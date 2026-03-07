@@ -114,6 +114,25 @@ type InteractionFilters struct {
 	Limit    int
 }
 
+// Tag represents a label that can be applied to any entity.
+type Tag struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+// Valid entity types for tagging.
+var EntityTypes = []string{"person", "organization", "deal", "interaction"}
+
+// ValidEntityType checks if the given type is valid.
+func ValidEntityType(t string) bool {
+	for _, et := range EntityTypes {
+		if et == t {
+			return true
+		}
+	}
+	return false
+}
+
 // Interaction types
 var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 
