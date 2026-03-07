@@ -33,3 +33,16 @@ changelog:
 
 checksum:
   name_template: 'checksums.txt'
+
+brews:
+  - repository:
+      owner: jdanielnd
+      name: homebrew-tap
+    name: crm
+    homepage: "https://github.com/jdanielnd/crm-cli"
+    description: "Local-first personal CRM for the terminal"
+    license: "MIT"
+    install: |
+      bin.install "crm"
+    test: |
+      system "#{bin}/crm", "--version"
