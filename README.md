@@ -200,28 +200,36 @@ Exit codes: `0` success, `1` error, `2` usage, `3` not found, `4` conflict, `10`
 
 `crm` includes a built-in [MCP](https://modelcontextprotocol.io/) server so AI agents can query and update your CRM over a structured protocol.
 
-**Claude Code** (one command):
+### Claude Code
 
 ```bash
 claude mcp add crm -- crm mcp serve
 ```
 
-**Claude Desktop** (add to config manually):
+Then copy [`AGENT.md`](AGENT.md) into your project as `CLAUDE.md` so Claude knows how to use the CRM effectively.
+
+### Claude Desktop (macOS)
+
+1. Open the config file at `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+2. Add the CRM server (if the file already has other servers, add the `"crm"` entry inside the existing `mcpServers` object):
 
 ```json
 {
   "mcpServers": {
     "crm": {
-      "command": "crm",
+      "command": "/opt/homebrew/bin/crm",
       "args": ["mcp", "serve"]
     }
   }
 }
 ```
 
-**Agent instructions** (optional but recommended):
+> **Note:** Use the full path to the binary. Homebrew on Apple Silicon installs to `/opt/homebrew/bin/crm`, on Intel Macs to `/usr/local/bin/crm`. Run `which crm` to find yours.
 
-Copy [`AGENT.md`](AGENT.md) into your project as `CLAUDE.md`, or paste its contents into your Claude project instructions. This teaches Claude how to use the CRM effectively — when to log interactions, how to maintain contact summaries, tagging conventions, and more.
+3. Restart Claude Desktop
+
+4. Create a new **Project**, click the project settings, and paste the contents of [`AGENT.md`](AGENT.md) into the project instructions. This teaches Claude when to log interactions, how to maintain contact summaries, tagging conventions, and more.
 
 ### Available Tools
 
