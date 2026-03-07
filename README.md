@@ -40,11 +40,11 @@ go install github.com/jdanielnd/crm-cli/cmd/crm@latest
 ## Quick Start
 
 ```bash
-# Add a contact
-crm person add "Jane Smith" --email jane@example.com
-
-# Add their company
+# Add a company
 crm org add "Acme Corp" --domain acme.com
+
+# Add a contact and link them to the org
+crm person add "Jane Smith" --email jane@example.com --org 1
 
 # Log a call
 crm log call 1 --subject "Intro call"

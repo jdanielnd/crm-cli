@@ -683,12 +683,12 @@
         <span class="code-dot"></span>
       </div>
       <div class="code-body">
-<pre><span class="comment"># Add a contact and their company</span>
-$ crm person add <span class="string">"Jane Smith"</span> <span class="flag">--email</span> jane@acme.com <span class="flag">--title</span> <span class="string">"CTO"</span>
-<span class="keyword">Created person #1: Jane Smith</span>
-
+<pre><span class="comment"># Add a company and a contact</span>
 $ crm org add <span class="string">"Acme Corp"</span> <span class="flag">--domain</span> acme.com
 <span class="keyword">Created organization #1: Acme Corp</span>
+
+$ crm person add <span class="string">"Jane Smith"</span> <span class="flag">--email</span> jane@acme.com <span class="flag">--title</span> <span class="string">"CTO"</span> <span class="flag">--org</span> 1
+<span class="keyword">Created person #1: Jane Smith</span>
 
 <span class="comment"># Log an interaction</span>
 $ crm log call 1 <span class="flag">--subject</span> <span class="string">"Intro call — discussed roadmap"</span>
