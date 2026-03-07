@@ -66,6 +66,23 @@ type Organization struct {
 	UpdatedAt string  `json:"updated_at"`
 }
 
+// CreateOrgInput holds fields for creating an organization.
+type CreateOrgInput struct {
+	Name     string
+	Domain   *string
+	Industry *string
+	Notes    *string
+}
+
+// UpdateOrgInput holds optional fields for updating an organization.
+type UpdateOrgInput struct {
+	Name     *string
+	Domain   *string
+	Industry *string
+	Notes    *string
+	Summary  *string
+}
+
 // Interaction types
 var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 

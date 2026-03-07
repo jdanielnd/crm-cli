@@ -40,6 +40,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().BoolVar(&flagNoColor, "no-color", false, "disable colors")
 
 	registerPersonCommands(rootCmd)
+	registerOrgCommands(rootCmd)
 
 	return rootCmd
 }
