@@ -78,11 +78,6 @@ func (r *PersonRepo) FindAll(ctx context.Context, filters model.PersonFilters) (
 
 	if filters.Tag != nil {
 		query = fmt.Sprintf(
-			"SELECT %s FROM people p JOIN taggings tg ON tg.entity_type = 'person' AND tg.entity_id = p.id JOIN tags t ON t.id = tg.tag_id WHERE p.archived = 0 AND t.name = ?",
-			strings.ReplaceAll(personColumns, ", ", ", p."),
-		)
-		// Fix: prefix the first column too
-		query = fmt.Sprintf(
 			"SELECT p.%s FROM people p JOIN taggings tg ON tg.entity_type = 'person' AND tg.entity_id = p.id JOIN tags t ON t.id = tg.tag_id WHERE p.archived = 0 AND t.name = ?",
 			strings.ReplaceAll(personColumns, ", ", ", p."),
 		)

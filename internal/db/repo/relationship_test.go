@@ -75,8 +75,8 @@ func TestRelationshipFindForPerson(t *testing.T) {
 	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
 	p3, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Alice"})
 
-	rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
-	rr.Create(ctx, p3.ID, p1.ID, "mentor", nil) // p1 is the related person
+	_, _ = rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
+	_, _ = rr.Create(ctx, p3.ID, p1.ID, "mentor", nil) // p1 is the related person
 
 	rels, err := rr.FindForPerson(ctx, p1.ID)
 	require.NoError(t, err)

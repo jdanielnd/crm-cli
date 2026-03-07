@@ -40,7 +40,7 @@ func (r *InteractionRepo) Create(ctx context.Context, input model.CreateInteract
 	if err != nil {
 		return nil, fmt.Errorf("begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	id := uuid.New().String()
 	occurredAt := "datetime('now')"

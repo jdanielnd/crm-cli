@@ -55,7 +55,7 @@ func TestTagApply_Idempotent(t *testing.T) {
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 
-	tr.Apply(ctx, "person", p.ID, "vip")
+	_ = tr.Apply(ctx, "person", p.ID, "vip")
 	err := tr.Apply(ctx, "person", p.ID, "vip") // duplicate
 	require.NoError(t, err)
 
@@ -74,7 +74,7 @@ func TestTagRemove(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	tr.Apply(ctx, "person", p.ID, "vip")
+	_ = tr.Apply(ctx, "person", p.ID, "vip")
 
 	err := tr.Remove(ctx, "person", p.ID, "vip")
 	require.NoError(t, err)
@@ -94,8 +94,8 @@ func TestTagFindAll(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	tr.Apply(ctx, "person", p.ID, "vip")
-	tr.Apply(ctx, "person", p.ID, "client")
+	_ = tr.Apply(ctx, "person", p.ID, "vip")
+	_ = tr.Apply(ctx, "person", p.ID, "client")
 
 	tags, err := tr.FindAll(ctx)
 	require.NoError(t, err)
@@ -108,8 +108,8 @@ func TestTagGetEntities(t *testing.T) {
 
 	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-	tr.Apply(ctx, "person", p1.ID, "vip")
-	tr.Apply(ctx, "person", p2.ID, "vip")
+	_ = tr.Apply(ctx, "person", p1.ID, "vip")
+	_ = tr.Apply(ctx, "person", p2.ID, "vip")
 
 	ids, err := tr.GetEntities(ctx, "vip", "person")
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestTagDelete(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	tr.Apply(ctx, "person", p.ID, "vip")
+	_ = tr.Apply(ctx, "person", p.ID, "vip")
 
 	err := tr.Delete(ctx, "vip")
 	require.NoError(t, err)

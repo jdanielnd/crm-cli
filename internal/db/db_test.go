@@ -42,12 +42,12 @@ func TestOpen_Pragmas(t *testing.T) {
 	defer d.Close()
 
 	var journalMode string
-	d.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
+	_ = d.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
 	// In-memory databases use "memory" journal mode, not WAL
 	assert.Contains(t, []string{"wal", "memory"}, journalMode)
 
 	var fk int
-	d.QueryRow("PRAGMA foreign_keys").Scan(&fk)
+	_ = d.QueryRow("PRAGMA foreign_keys").Scan(&fk)
 	assert.Equal(t, 1, fk)
 }
 
@@ -57,6 +57,6 @@ func TestOpen_MigrationVersion(t *testing.T) {
 	defer d.Close()
 
 	var version int
-	d.QueryRow("PRAGMA user_version").Scan(&version)
+	_ = d.QueryRow("PRAGMA user_version").Scan(&version)
 	assert.Equal(t, 1, version)
 }

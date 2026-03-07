@@ -71,12 +71,12 @@ func TestTaskDone(t *testing.T) {
 	// Should not appear in default list (excludes completed)
 	stdout, _, _ := crm(t, dbPath, "task", "list", "-f", "json")
 	var data []map[string]any
-	json.Unmarshal([]byte(stdout), &data)
+	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
 	assert.Len(t, data, 0)
 
 	// Should appear with --all
 	stdout, _, _ = crm(t, dbPath, "task", "list", "--all", "-f", "json")
-	json.Unmarshal([]byte(stdout), &data)
+	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
 	assert.Len(t, data, 1)
 }
 

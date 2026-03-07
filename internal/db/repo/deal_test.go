@@ -81,8 +81,8 @@ func TestDealFindAll(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
 
 	deals, err := dr.FindAll(ctx, model.DealFilters{})
 	require.NoError(t, err)
@@ -93,8 +93,8 @@ func TestDealFindAll_FilterByStage(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
 
 	stage := "proposal"
 	deals, err := dr.FindAll(ctx, model.DealFilters{Stage: &stage})
@@ -150,9 +150,9 @@ func TestDealPipeline(t *testing.T) {
 
 	v1 := 10000.0
 	v2 := 5000.0
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead", Value: &v1})
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "lead", Value: &v2})
-	dr.Create(ctx, model.CreateDealInput{Title: "Deal 3", Stage: "won", Value: &v1})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead", Value: &v1})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "lead", Value: &v2})
+	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 3", Stage: "won", Value: &v1})
 
 	stages, err := dr.Pipeline(ctx)
 	require.NoError(t, err)

@@ -112,8 +112,8 @@ func TestInteractionFindAll(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
 
 	results, err := ir.FindAll(ctx, model.InteractionFilters{})
 	require.NoError(t, err)
@@ -126,8 +126,8 @@ func TestInteractionFindAll_FilterByPerson(t *testing.T) {
 
 	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p1.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p2.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p1.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p2.ID}})
 
 	results, err := ir.FindAll(ctx, model.InteractionFilters{PersonID: &p1.ID})
 	require.NoError(t, err)
@@ -140,9 +140,9 @@ func TestInteractionFindAll_FilterByType(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
 
 	callType := "call"
 	results, err := ir.FindAll(ctx, model.InteractionFilters{Type: &callType})
@@ -155,9 +155,9 @@ func TestInteractionFindAll_WithLimit(t *testing.T) {
 	ctx := context.Background()
 
 	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
-	ir.Create(ctx, model.CreateInteractionInput{Type: "note", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "call", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "email", PersonIDs: []int64{p.ID}})
+	_, _ = ir.Create(ctx, model.CreateInteractionInput{Type: "note", PersonIDs: []int64{p.ID}})
 
 	results, err := ir.FindAll(ctx, model.InteractionFilters{Limit: 2})
 	require.NoError(t, err)

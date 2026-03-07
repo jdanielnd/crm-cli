@@ -157,7 +157,7 @@ func TestPersonDelete(t *testing.T) {
 
 	stdout, _, _ := crm(t, dbPath, "person", "list", "-f", "json")
 	var data []map[string]any
-	json.Unmarshal([]byte(stdout), &data)
+	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
 	assert.Len(t, data, 0)
 }
 

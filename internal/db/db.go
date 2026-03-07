@@ -86,12 +86,12 @@ func runMigrations(db *sql.DB) error {
 		}
 
 		if _, err := tx.Exec(upSQL); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("execute migration %s: %w", entry.Name(), err)
 		}
 
 		if _, err := tx.Exec(fmt.Sprintf("PRAGMA user_version = %d", version)); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("set user_version to %d: %w", version, err)
 		}
 

@@ -54,8 +54,8 @@ func TestOrgFindAll(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
-	r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
 
 	orgs, err := r.FindAll(ctx, 0)
 	require.NoError(t, err)
@@ -66,9 +66,9 @@ func TestOrgFindAll_WithLimit(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
-	r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
-	r.Create(ctx, model.CreateOrgInput{Name: "Initech"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Initech"})
 
 	orgs, err := r.FindAll(ctx, 2)
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestOrgUpdate(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
 
 	newDomain := "acme.io"
 	updated, err := r.Update(ctx, 1, model.UpdateOrgInput{Domain: &newDomain})
@@ -99,7 +99,7 @@ func TestOrgArchive(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
 	err := r.Archive(ctx, 1)
 	require.NoError(t, err)
 
@@ -117,8 +117,8 @@ func TestOrgSearch(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp", Domain: ptr("acme.com")})
-	r.Create(ctx, model.CreateOrgInput{Name: "Globex Inc"})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp", Domain: ptr("acme.com")})
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex Inc"})
 
 	results, err := r.Search(ctx, "Acme", 10)
 	require.NoError(t, err)
@@ -130,8 +130,8 @@ func TestOrgSearch_ArchivedExcluded(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
-	r.Archive(ctx, 1)
+	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
+	_ = r.Archive(ctx, 1)
 
 	results, err := r.Search(ctx, "Acme", 10)
 	require.NoError(t, err)
@@ -144,9 +144,9 @@ func TestOrgFindPeople(t *testing.T) {
 
 	org, _ := orgRepo.Create(ctx, model.CreateOrgInput{Name: "Acme"})
 
-	personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Jane", OrgID: &org.ID})
-	personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Bob", OrgID: &org.ID})
-	personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Alice"}) // no org
+	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Jane", OrgID: &org.ID})
+	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Bob", OrgID: &org.ID})
+	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Alice"}) // no org
 
 	people, err := orgRepo.FindPeople(ctx, org.ID)
 	require.NoError(t, err)

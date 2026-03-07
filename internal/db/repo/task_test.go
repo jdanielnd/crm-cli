@@ -71,8 +71,8 @@ func TestTaskFindAll(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
-	tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
+	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
+	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
 
 	tasks, err := tr.FindAll(ctx, model.TaskFilters{})
 	require.NoError(t, err)
@@ -84,8 +84,8 @@ func TestTaskFindAll_ExcludesCompleted(t *testing.T) {
 	ctx := context.Background()
 
 	t1, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
-	tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
-	tr.Complete(ctx, t1.ID)
+	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
+	_, _ = tr.Complete(ctx, t1.ID)
 
 	tasks, err := tr.FindAll(ctx, model.TaskFilters{})
 	require.NoError(t, err)

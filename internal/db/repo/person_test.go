@@ -63,8 +63,8 @@ func TestPersonFindAll(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
 
 	people, err := r.FindAll(ctx, model.PersonFilters{})
 	require.NoError(t, err)
@@ -75,9 +75,9 @@ func TestPersonFindAll_WithLimit(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Alice"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Alice"})
 
 	people, err := r.FindAll(ctx, model.PersonFilters{Limit: 2})
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestPersonUpdate(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 
 	newEmail := "new@example.com"
 	updated, err := r.Update(ctx, 1, model.UpdatePersonInput{Email: &newEmail})
@@ -111,7 +111,7 @@ func TestPersonUpdate_NoChanges(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 
 	// Empty update should return the person unchanged
 	p, err := r.Update(ctx, 1, model.UpdatePersonInput{})
@@ -123,7 +123,7 @@ func TestPersonArchive(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 	err := r.Archive(ctx, 1)
 	require.NoError(t, err)
 
@@ -148,8 +148,8 @@ func TestPersonSearch(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane", LastName: ptr("Smith"), Email: ptr("jane@example.com")})
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Bob", LastName: ptr("Jones")})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane", LastName: ptr("Smith"), Email: ptr("jane@example.com")})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Bob", LastName: ptr("Jones")})
 
 	results, err := r.Search(ctx, "Jane", 10)
 	require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestPersonSearch_ByEmail(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane", Email: ptr("jane@example.com")})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane", Email: ptr("jane@example.com")})
 
 	results, err := r.Search(ctx, "jane@example", 10)
 	require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestPersonSearch_NoResults(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 
 	results, err := r.Search(ctx, "nonexistent", 10)
 	require.NoError(t, err)
@@ -183,8 +183,8 @@ func TestPersonSearch_ArchivedExcluded(t *testing.T) {
 	r := setupTestDB(t)
 	ctx := context.Background()
 
-	r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	r.Archive(ctx, 1)
+	_, _ = r.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	_ = r.Archive(ctx, 1)
 
 	results, err := r.Search(ctx, "Jane", 10)
 	require.NoError(t, err)

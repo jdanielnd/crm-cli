@@ -57,7 +57,7 @@ func TestTagRemove(t *testing.T) {
 
 	stdout, _, _ := crm(t, dbPath, "tag", "show", "person", "1", "-f", "json")
 	var data []map[string]any
-	json.Unmarshal([]byte(stdout), &data)
+	require.NoError(t, json.Unmarshal([]byte(stdout), &data))
 	assert.Len(t, data, 0)
 }
 

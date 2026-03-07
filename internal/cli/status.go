@@ -25,34 +25,34 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 
 			// Count people
 			var personCount int
-			db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&personCount)
+			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&personCount)
 
 			// Count organizations
 			var orgCount int
-			db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&orgCount)
+			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&orgCount)
 
 			// Open deals summary
 			var dealCount int
 			var dealValue float64
-			db.QueryRowContext(ctx,
+			_ = db.QueryRowContext(ctx,
 				"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
 				Scan(&dealCount, &dealValue)
 
 			// Overdue tasks
 			var overdueCount int
-			db.QueryRowContext(ctx,
+			_ = db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").
 				Scan(&overdueCount)
 
 			// Interactions this week
 			var weekInteractions int
-			db.QueryRowContext(ctx,
+			_ = db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").
 				Scan(&weekInteractions)
 
 			// Open tasks
 			var openTasks int
-			db.QueryRowContext(ctx,
+			_ = db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").
 				Scan(&openTasks)
 

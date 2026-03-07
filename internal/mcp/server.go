@@ -634,29 +634,29 @@ func statsHandler(db *sql.DB) server.ToolHandlerFunc {
 		stats := map[string]any{}
 
 		var n int
-		db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&n)
+		_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&n)
 		stats["contacts"] = n
 
-		db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&n)
+		_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&n)
 		stats["organizations"] = n
 
 		var dealCount int
 		var dealValue float64
-		db.QueryRowContext(ctx,
+		_ = db.QueryRowContext(ctx,
 			"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
 			Scan(&dealCount, &dealValue)
 		stats["open_deals"] = dealCount
 		stats["deal_value"] = dealValue
 
-		db.QueryRowContext(ctx,
+		_ = db.QueryRowContext(ctx,
 			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").Scan(&n)
 		stats["open_tasks"] = n
 
-		db.QueryRowContext(ctx,
+		_ = db.QueryRowContext(ctx,
 			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").Scan(&n)
 		stats["overdue_tasks"] = n
 
-		db.QueryRowContext(ctx,
+		_ = db.QueryRowContext(ctx,
 			"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").Scan(&n)
 		stats["interactions_7days"] = n
 
