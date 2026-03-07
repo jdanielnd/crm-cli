@@ -219,6 +219,10 @@ claude mcp add crm -- crm mcp serve
 }
 ```
 
+**Agent instructions** (optional but recommended):
+
+Copy [`AGENT.md`](AGENT.md) into your project as `CLAUDE.md`, or paste its contents into your Claude project instructions. This teaches Claude how to use the CRM effectively — when to log interactions, how to maintain contact summaries, tagging conventions, and more.
+
 ### Available Tools
 
 | Tool | Description |
