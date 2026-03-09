@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -87,6 +88,10 @@ func logTypeCmd(interactionType string) *cobra.Command {
 				return err
 			}
 			defer db.Close()
+
+			if direction != "" && !model.ValidInteractionDirection(direction) {
+				return model.NewExitError(model.ErrValidation, "invalid direction: %s (must be one of: %s)", direction, strings.Join(model.InteractionDirections, ", "))
+			}
 
 			input := model.CreateInteractionInput{
 				Type:      interactionType,

@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -95,7 +96,7 @@ func (r *InteractionRepo) FindByID(ctx context.Context, id int64) (*model.Intera
 	row := r.db.QueryRowContext(ctx,
 		fmt.Sprintf("SELECT %s FROM interactions WHERE id = ? AND archived = 0", interactionColumns), id)
 	i, err := scanInteraction(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("interaction %d: %w", id, model.ErrNotFound)
 	}
 	if err != nil {
@@ -162,13 +163,9 @@ func (r *InteractionRepo) FindAll(ctx context.Context, filters model.Interaction
 	}
 	rows.Close()
 
-	// Now fetch person IDs for each interaction
-	for _, i := range interactions {
-		personIDs, err := r.getPersonIDs(ctx, i.ID)
-		if err != nil {
-			return nil, err
-		}
-		i.PersonIDs = personIDs
+	// Batch-fetch person IDs for all interactions
+	if err := r.loadPersonIDs(ctx, interactions); err != nil {
+		return nil, err
 	}
 
 	return interactions, nil
@@ -205,15 +202,57 @@ func (r *InteractionRepo) Search(ctx context.Context, query string, limit int) (
 	}
 	rows.Close()
 
-	for _, i := range interactions {
-		personIDs, err := r.getPersonIDs(ctx, i.ID)
-		if err != nil {
-			return nil, err
-		}
-		i.PersonIDs = personIDs
+	// Batch-fetch person IDs for all interactions
+	if err := r.loadPersonIDs(ctx, interactions); err != nil {
+		return nil, err
 	}
 
 	return interactions, nil
+}
+
+// loadPersonIDs batch-loads person IDs for a slice of interactions in a single query.
+func (r *InteractionRepo) loadPersonIDs(ctx context.Context, interactions []*model.Interaction) error {
+	if len(interactions) == 0 {
+		return nil
+	}
+
+	ids := make([]int64, len(interactions))
+	for i, inter := range interactions {
+		ids[i] = inter.ID
+	}
+
+	placeholders := strings.Repeat("?,", len(ids))
+	placeholders = placeholders[:len(placeholders)-1]
+
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	rows, err := r.db.QueryContext(ctx,
+		fmt.Sprintf("SELECT interaction_id, person_id FROM interaction_people WHERE interaction_id IN (%s)", placeholders),
+		args...)
+	if err != nil {
+		return fmt.Errorf("batch get person IDs: %w", err)
+	}
+	defer rows.Close()
+
+	personIDMap := make(map[int64][]int64)
+	for rows.Next() {
+		var iID, pID int64
+		if err := rows.Scan(&iID, &pID); err != nil {
+			return fmt.Errorf("scan person ID: %w", err)
+		}
+		personIDMap[iID] = append(personIDMap[iID], pID)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate person IDs: %w", err)
+	}
+
+	for _, inter := range interactions {
+		inter.PersonIDs = personIDMap[inter.ID]
+	}
+	return nil
 }
 
 func (r *InteractionRepo) getPersonIDs(ctx context.Context, interactionID int64) ([]int64, error) {

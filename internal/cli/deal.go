@@ -94,6 +94,10 @@ func dealAddCmd() *cobra.Command {
 			}
 			defer db.Close()
 
+			if !model.ValidDealStage(stage) {
+				return model.NewExitError(model.ErrValidation, "invalid stage: %s (must be one of: %s)", stage, strings.Join(model.DealStages, ", "))
+			}
+
 			input := model.CreateDealInput{
 				Title: args[0],
 				Stage: stage,
@@ -233,6 +237,9 @@ func dealEditCmd() *cobra.Command {
 				input.Value = &value
 			}
 			if cmd.Flags().Changed("stage") {
+				if !model.ValidDealStage(stage) {
+					return model.NewExitError(model.ErrValidation, "invalid stage: %s (must be one of: %s)", stage, strings.Join(model.DealStages, ", "))
+				}
 				input.Stage = &stage
 			}
 			if cmd.Flags().Changed("person") {

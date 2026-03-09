@@ -37,9 +37,10 @@ func TestTagApplyAndGetForEntity(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
 
-	err := tr.Apply(ctx, "person", p.ID, "vip")
+	err = tr.Apply(ctx, "person", p.ID, "vip")
 	require.NoError(t, err)
 	err = tr.Apply(ctx, "person", p.ID, "client")
 	require.NoError(t, err)
@@ -53,13 +54,16 @@ func TestTagApply_Idempotent(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-
-	_ = tr.Apply(ctx, "person", p.ID, "vip")
-	err := tr.Apply(ctx, "person", p.ID, "vip") // duplicate
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
 	require.NoError(t, err)
 
-	tags, _ := tr.GetForEntity(ctx, "person", p.ID)
+	err = tr.Apply(ctx, "person", p.ID, "vip")
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p.ID, "vip") // duplicate
+	require.NoError(t, err)
+
+	tags, err := tr.GetForEntity(ctx, "person", p.ID)
+	require.NoError(t, err)
 	assert.Len(t, tags, 1)
 }
 
@@ -73,13 +77,16 @@ func TestTagRemove(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	_ = tr.Apply(ctx, "person", p.ID, "vip")
-
-	err := tr.Remove(ctx, "person", p.ID, "vip")
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p.ID, "vip")
 	require.NoError(t, err)
 
-	tags, _ := tr.GetForEntity(ctx, "person", p.ID)
+	err = tr.Remove(ctx, "person", p.ID, "vip")
+	require.NoError(t, err)
+
+	tags, err := tr.GetForEntity(ctx, "person", p.ID)
+	require.NoError(t, err)
 	assert.Len(t, tags, 0)
 }
 
@@ -93,9 +100,12 @@ func TestTagFindAll(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	_ = tr.Apply(ctx, "person", p.ID, "vip")
-	_ = tr.Apply(ctx, "person", p.ID, "client")
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p.ID, "vip")
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p.ID, "client")
+	require.NoError(t, err)
 
 	tags, err := tr.FindAll(ctx)
 	require.NoError(t, err)
@@ -106,10 +116,14 @@ func TestTagGetEntities(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-	_ = tr.Apply(ctx, "person", p1.ID, "vip")
-	_ = tr.Apply(ctx, "person", p2.ID, "vip")
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p1.ID, "vip")
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p2.ID, "vip")
+	require.NoError(t, err)
 
 	ids, err := tr.GetEntities(ctx, "vip", "person")
 	require.NoError(t, err)
@@ -120,17 +134,21 @@ func TestTagDelete(t *testing.T) {
 	tr, pr := setupTagTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	_ = tr.Apply(ctx, "person", p.ID, "vip")
-
-	err := tr.Delete(ctx, "vip")
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	err = tr.Apply(ctx, "person", p.ID, "vip")
 	require.NoError(t, err)
 
-	tags, _ := tr.FindAll(ctx)
+	err = tr.Delete(ctx, "vip")
+	require.NoError(t, err)
+
+	tags, err := tr.FindAll(ctx)
+	require.NoError(t, err)
 	assert.Len(t, tags, 0)
 
 	// Taggings should be gone too (CASCADE)
-	entityTags, _ := tr.GetForEntity(ctx, "person", p.ID)
+	entityTags, err := tr.GetForEntity(ctx, "person", p.ID)
+	require.NoError(t, err)
 	assert.Len(t, entityTags, 0)
 }
 

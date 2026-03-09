@@ -37,7 +37,8 @@ func TestDealCreate_WithValue(t *testing.T) {
 	dr, pr := setupDealTestDB(t)
 	ctx := context.Background()
 
-	p, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	p, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
 	value := 15000.0
 
 	deal, err := dr.Create(ctx, model.CreateDealInput{
@@ -64,7 +65,8 @@ func TestDealFindByID(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	created, _ := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	created, err := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	require.NoError(t, err)
 
 	found, err := dr.FindByID(ctx, created.ID)
 	require.NoError(t, err)
@@ -81,8 +83,10 @@ func TestDealFindAll(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	_, err := dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
+	require.NoError(t, err)
+	_, err = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	require.NoError(t, err)
 
 	deals, err := dr.FindAll(ctx, model.DealFilters{})
 	require.NoError(t, err)
@@ -93,8 +97,10 @@ func TestDealFindAll_FilterByStage(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	_, err := dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead"})
+	require.NoError(t, err)
+	_, err = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "proposal"})
+	require.NoError(t, err)
 
 	stage := "proposal"
 	deals, err := dr.FindAll(ctx, model.DealFilters{Stage: &stage})
@@ -107,7 +113,8 @@ func TestDealUpdate(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	deal, _ := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	deal, err := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	require.NoError(t, err)
 
 	newStage := "proposal"
 	value := 5000.0
@@ -124,10 +131,11 @@ func TestDealUpdate_InvalidStage(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	deal, _ := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	deal, err := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	require.NoError(t, err)
 
 	badStage := "invalid"
-	_, err := dr.Update(ctx, deal.ID, model.UpdateDealInput{Stage: &badStage})
+	_, err = dr.Update(ctx, deal.ID, model.UpdateDealInput{Stage: &badStage})
 	assert.ErrorIs(t, err, model.ErrValidation)
 }
 
@@ -135,9 +143,10 @@ func TestDealArchive(t *testing.T) {
 	dr, _ := setupDealTestDB(t)
 	ctx := context.Background()
 
-	deal, _ := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	deal, err := dr.Create(ctx, model.CreateDealInput{Title: "Test", Stage: "lead"})
+	require.NoError(t, err)
 
-	err := dr.Archive(ctx, deal.ID)
+	err = dr.Archive(ctx, deal.ID)
 	require.NoError(t, err)
 
 	_, err = dr.FindByID(ctx, deal.ID)
@@ -150,9 +159,12 @@ func TestDealPipeline(t *testing.T) {
 
 	v1 := 10000.0
 	v2 := 5000.0
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead", Value: &v1})
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "lead", Value: &v2})
-	_, _ = dr.Create(ctx, model.CreateDealInput{Title: "Deal 3", Stage: "won", Value: &v1})
+	_, err := dr.Create(ctx, model.CreateDealInput{Title: "Deal 1", Stage: "lead", Value: &v1})
+	require.NoError(t, err)
+	_, err = dr.Create(ctx, model.CreateDealInput{Title: "Deal 2", Stage: "lead", Value: &v2})
+	require.NoError(t, err)
+	_, err = dr.Create(ctx, model.CreateDealInput{Title: "Deal 3", Stage: "won", Value: &v1})
+	require.NoError(t, err)
 
 	stages, err := dr.Pipeline(ctx)
 	require.NoError(t, err)

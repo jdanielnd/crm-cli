@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -56,7 +57,7 @@ func (r *TaskRepo) FindByID(ctx context.Context, id int64) (*model.Task, error) 
 		        completed, completed_at, archived, created_at, updated_at
 		 FROM tasks WHERE id = ? AND archived = 0`, id))
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("task %d: %w", id, model.ErrNotFound)
 		}
 		return nil, fmt.Errorf("find task %d: %w", id, err)

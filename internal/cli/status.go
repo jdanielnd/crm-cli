@@ -25,36 +25,48 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 
 			// Count people
 			var personCount int
-			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&personCount)
+			if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&personCount); err != nil {
+				return fmt.Errorf("count people: %w", err)
+			}
 
 			// Count organizations
 			var orgCount int
-			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&orgCount)
+			if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&orgCount); err != nil {
+				return fmt.Errorf("count organizations: %w", err)
+			}
 
 			// Open deals summary
 			var dealCount int
 			var dealValue float64
-			_ = db.QueryRowContext(ctx,
+			if err := db.QueryRowContext(ctx,
 				"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
-				Scan(&dealCount, &dealValue)
+				Scan(&dealCount, &dealValue); err != nil {
+				return fmt.Errorf("count deals: %w", err)
+			}
 
 			// Overdue tasks
 			var overdueCount int
-			_ = db.QueryRowContext(ctx,
+			if err := db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").
-				Scan(&overdueCount)
+				Scan(&overdueCount); err != nil {
+				return fmt.Errorf("count overdue tasks: %w", err)
+			}
 
 			// Interactions this week
 			var weekInteractions int
-			_ = db.QueryRowContext(ctx,
+			if err := db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").
-				Scan(&weekInteractions)
+				Scan(&weekInteractions); err != nil {
+				return fmt.Errorf("count interactions: %w", err)
+			}
 
 			// Open tasks
 			var openTasks int
-			_ = db.QueryRowContext(ctx,
+			if err := db.QueryRowContext(ctx,
 				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").
-				Scan(&openTasks)
+				Scan(&openTasks); err != nil {
+				return fmt.Errorf("count open tasks: %w", err)
+			}
 
 			f := resolveFormat()
 			if f == format.FormatJSON || f == format.FormatCSV || f == format.FormatTSV {
@@ -87,7 +99,10 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 
 			// Show pipeline if there are deals
 			dr := repo.NewDealRepo(db)
-			stages, _ := dr.Pipeline(ctx)
+			stages, err := dr.Pipeline(ctx)
+			if err != nil {
+				return fmt.Errorf("pipeline: %w", err)
+			}
 			if len(stages) > 0 {
 				fmt.Fprintln(os.Stdout)
 				fmt.Fprintln(os.Stdout, "Pipeline:")
@@ -99,7 +114,10 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 			// Show overdue tasks if any
 			if overdueCount > 0 {
 				tr := repo.NewTaskRepo(db)
-				tasks, _ := tr.FindAll(ctx, model.TaskFilters{Overdue: true, Limit: 5})
+				tasks, err := tr.FindAll(ctx, model.TaskFilters{Overdue: true, Limit: 5})
+				if err != nil {
+					return fmt.Errorf("list overdue tasks: %w", err)
+				}
 				if len(tasks) > 0 {
 					fmt.Fprintln(os.Stdout)
 					fmt.Fprintln(os.Stdout, "Overdue tasks:")

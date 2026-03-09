@@ -23,8 +23,10 @@ func TestRelationshipCreate(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	require.NoError(t, err)
 
 	rel, err := rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
 	require.NoError(t, err)
@@ -37,8 +39,10 @@ func TestRelationshipCreate_WithNotes(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	require.NoError(t, err)
 
 	notes := "Met at conference"
 	rel, err := rr.Create(ctx, p1.ID, p2.ID, "friend", &notes)
@@ -50,10 +54,12 @@ func TestRelationshipCreate_InvalidType(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	require.NoError(t, err)
 
-	_, err := rr.Create(ctx, p1.ID, p2.ID, "enemy", nil)
+	_, err = rr.Create(ctx, p1.ID, p2.ID, "enemy", nil)
 	assert.ErrorIs(t, err, model.ErrValidation)
 }
 
@@ -61,9 +67,10 @@ func TestRelationshipCreate_SelfRelation(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
 
-	_, err := rr.Create(ctx, p1.ID, p1.ID, "colleague", nil)
+	_, err = rr.Create(ctx, p1.ID, p1.ID, "colleague", nil)
 	assert.ErrorIs(t, err, model.ErrValidation)
 }
 
@@ -71,12 +78,17 @@ func TestRelationshipFindForPerson(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-	p3, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Alice"})
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
+	require.NoError(t, err)
+	p3, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Alice"})
+	require.NoError(t, err)
 
-	_, _ = rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
-	_, _ = rr.Create(ctx, p3.ID, p1.ID, "mentor", nil) // p1 is the related person
+	_, err = rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
+	require.NoError(t, err)
+	_, err = rr.Create(ctx, p3.ID, p1.ID, "mentor", nil) // p1 is the related person
+	require.NoError(t, err)
 
 	rels, err := rr.FindForPerson(ctx, p1.ID)
 	require.NoError(t, err)
@@ -87,15 +99,19 @@ func TestRelationshipDelete(t *testing.T) {
 	rr, pr := setupRelTestDB(t)
 	ctx := context.Background()
 
-	p1, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
-	p2, _ := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
-
-	rel, _ := rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
-
-	err := rr.Delete(ctx, rel.ID)
+	p1, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Jane"})
+	require.NoError(t, err)
+	p2, err := pr.Create(ctx, model.CreatePersonInput{FirstName: "Bob"})
 	require.NoError(t, err)
 
-	rels, _ := rr.FindForPerson(ctx, p1.ID)
+	rel, err := rr.Create(ctx, p1.ID, p2.ID, "colleague", nil)
+	require.NoError(t, err)
+
+	err = rr.Delete(ctx, rel.ID)
+	require.NoError(t, err)
+
+	rels, err := rr.FindForPerson(ctx, p1.ID)
+	require.NoError(t, err)
 	assert.Len(t, rels, 0)
 }
 

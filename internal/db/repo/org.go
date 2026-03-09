@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -59,7 +60,7 @@ func (r *OrgRepo) FindByID(ctx context.Context, id int64) (*model.Organization, 
 	row := r.db.QueryRowContext(ctx,
 		fmt.Sprintf("SELECT %s FROM organizations WHERE id = ? AND archived = 0", orgColumns), id)
 	o, err := scanOrg(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("organization %d: %w", id, model.ErrNotFound)
 	}
 	if err != nil {
