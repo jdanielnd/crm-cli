@@ -2,9 +2,11 @@ package cli
 
 import (
 	"os"
+	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
+	"github.com/jdanielnd/crm-cli/internal/model"
 	"github.com/spf13/cobra"
 )
 
@@ -31,6 +33,11 @@ func registerSearchCommand(rootCmd *cobra.Command) {
 			defer db.Close()
 
 			query := args[0]
+
+			if entityType != "" && !model.ValidEntityType(entityType) {
+				return model.NewExitError(model.ErrValidation, "invalid entity type: %s (must be one of: %s)", entityType, strings.Join(model.EntityTypes, ", "))
+			}
+
 			var data []map[string]any
 
 			if entityType == "" || entityType == "person" {

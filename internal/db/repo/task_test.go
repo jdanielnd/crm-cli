@@ -60,7 +60,8 @@ func TestTaskFindByID(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	created, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	created, err := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	require.NoError(t, err)
 
 	found, err := tr.FindByID(ctx, created.ID)
 	require.NoError(t, err)
@@ -71,8 +72,10 @@ func TestTaskFindAll(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
-	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
+	_, err := tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
+	require.NoError(t, err)
+	_, err = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
+	require.NoError(t, err)
 
 	tasks, err := tr.FindAll(ctx, model.TaskFilters{})
 	require.NoError(t, err)
@@ -83,9 +86,12 @@ func TestTaskFindAll_ExcludesCompleted(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	t1, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
-	_, _ = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
-	_, _ = tr.Complete(ctx, t1.ID)
+	t1, err := tr.Create(ctx, model.CreateTaskInput{Title: "Task 1", Priority: "low"})
+	require.NoError(t, err)
+	_, err = tr.Create(ctx, model.CreateTaskInput{Title: "Task 2", Priority: "high"})
+	require.NoError(t, err)
+	_, err = tr.Complete(ctx, t1.ID)
+	require.NoError(t, err)
 
 	tasks, err := tr.FindAll(ctx, model.TaskFilters{})
 	require.NoError(t, err)
@@ -101,7 +107,8 @@ func TestTaskComplete(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	task, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	task, err := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	require.NoError(t, err)
 
 	completed, err := tr.Complete(ctx, task.ID)
 	require.NoError(t, err)
@@ -113,7 +120,8 @@ func TestTaskUpdate(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	task, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	task, err := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	require.NoError(t, err)
 
 	newTitle := "Updated"
 	newPriority := "high"
@@ -130,9 +138,10 @@ func TestTaskArchive(t *testing.T) {
 	tr := setupTaskTestDB(t)
 	ctx := context.Background()
 
-	task, _ := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	task, err := tr.Create(ctx, model.CreateTaskInput{Title: "Test", Priority: "medium"})
+	require.NoError(t, err)
 
-	err := tr.Archive(ctx, task.ID)
+	err = tr.Archive(ctx, task.ID)
 	require.NoError(t, err)
 
 	_, err = tr.FindByID(ctx, task.ID)

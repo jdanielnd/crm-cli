@@ -43,6 +43,10 @@ func personRelateCmd() *cobra.Command {
 				return model.NewExitError(model.ErrValidation, "invalid related person ID: %s", args[1])
 			}
 
+			if !model.ValidRelationshipType(relType) {
+				return model.NewExitError(model.ErrValidation, "invalid relationship type: %s (must be one of: %s)", relType, strings.Join(model.RelationshipTypes, ", "))
+			}
+
 			db, err := openDB()
 			if err != nil {
 				return err

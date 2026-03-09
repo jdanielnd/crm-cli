@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -98,7 +99,7 @@ func (r *PersonRepo) FindByID(ctx context.Context, id int64) (*model.Person, err
 	row := r.db.QueryRowContext(ctx,
 		fmt.Sprintf("SELECT %s FROM people WHERE id = ? AND archived = 0", personColumns), id)
 	p, err := scanPerson(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("person %d: %w", id, model.ErrNotFound)
 	}
 	if err != nil {

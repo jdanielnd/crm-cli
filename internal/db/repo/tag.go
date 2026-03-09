@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jdanielnd/crm-cli/internal/model"
@@ -44,7 +45,7 @@ func (r *TagRepo) FindOrCreate(ctx context.Context, name string) (*model.Tag, er
 	if err == nil {
 		return &t, nil
 	}
-	if err != sql.ErrNoRows {
+	if !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("find tag: %w", err)
 	}
 

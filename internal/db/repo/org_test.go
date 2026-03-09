@@ -38,7 +38,8 @@ func TestOrgFindByID(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	created, _ := r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
+	created, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
+	require.NoError(t, err)
 	found, err := r.FindByID(ctx, created.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "Acme Corp", found.Name)
@@ -54,8 +55,10 @@ func TestOrgFindAll(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	require.NoError(t, err)
+	_, err = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
+	require.NoError(t, err)
 
 	orgs, err := r.FindAll(ctx, 0)
 	require.NoError(t, err)
@@ -66,9 +69,12 @@ func TestOrgFindAll_WithLimit(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Initech"})
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	require.NoError(t, err)
+	_, err = r.Create(ctx, model.CreateOrgInput{Name: "Globex"})
+	require.NoError(t, err)
+	_, err = r.Create(ctx, model.CreateOrgInput{Name: "Initech"})
+	require.NoError(t, err)
 
 	orgs, err := r.FindAll(ctx, 2)
 	require.NoError(t, err)
@@ -79,7 +85,8 @@ func TestOrgUpdate(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	require.NoError(t, err)
 
 	newDomain := "acme.io"
 	updated, err := r.Update(ctx, 1, model.UpdateOrgInput{Domain: &newDomain})
@@ -99,8 +106,9 @@ func TestOrgArchive(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
-	err := r.Archive(ctx, 1)
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	require.NoError(t, err)
+	err = r.Archive(ctx, 1)
 	require.NoError(t, err)
 
 	_, err = r.FindByID(ctx, 1)
@@ -117,8 +125,10 @@ func TestOrgSearch(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp", Domain: ptr("acme.com")})
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Globex Inc"})
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp", Domain: ptr("acme.com")})
+	require.NoError(t, err)
+	_, err = r.Create(ctx, model.CreateOrgInput{Name: "Globex Inc"})
+	require.NoError(t, err)
 
 	results, err := r.Search(ctx, "Acme", 10)
 	require.NoError(t, err)
@@ -130,8 +140,10 @@ func TestOrgSearch_ArchivedExcluded(t *testing.T) {
 	r, _ := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	_, _ = r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
-	_ = r.Archive(ctx, 1)
+	_, err := r.Create(ctx, model.CreateOrgInput{Name: "Acme Corp"})
+	require.NoError(t, err)
+	err = r.Archive(ctx, 1)
+	require.NoError(t, err)
 
 	results, err := r.Search(ctx, "Acme", 10)
 	require.NoError(t, err)
@@ -142,11 +154,15 @@ func TestOrgFindPeople(t *testing.T) {
 	orgRepo, personRepo := setupOrgTestDB(t)
 	ctx := context.Background()
 
-	org, _ := orgRepo.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	org, err := orgRepo.Create(ctx, model.CreateOrgInput{Name: "Acme"})
+	require.NoError(t, err)
 
-	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Jane", OrgID: &org.ID})
-	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Bob", OrgID: &org.ID})
-	_, _ = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Alice"}) // no org
+	_, err = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Jane", OrgID: &org.ID})
+	require.NoError(t, err)
+	_, err = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Bob", OrgID: &org.ID})
+	require.NoError(t, err)
+	_, err = personRepo.Create(ctx, model.CreatePersonInput{FirstName: "Alice"}) // no org
+	require.NoError(t, err)
 
 	people, err := orgRepo.FindPeople(ctx, org.ID)
 	require.NoError(t, err)

@@ -517,6 +517,10 @@ func searchHandler(pr *repo.PersonRepo, or *repo.OrgRepo, ir *repo.InteractionRe
 		entityType := req.GetString("type", "")
 		limit := req.GetInt("limit", 20)
 
+		if entityType != "" && !model.ValidEntityType(entityType) {
+			return gomcp.NewToolResultError(fmt.Sprintf("invalid entity type: %s", entityType)), nil
+		}
+
 		results := map[string]any{}
 
 		if entityType == "" || entityType == "person" {
@@ -782,30 +786,42 @@ func statsHandler(db *sql.DB) server.ToolHandlerFunc {
 		stats := map[string]any{}
 
 		var n int
-		_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&n)
+		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&n); err != nil {
+			return mcpError(fmt.Errorf("count people: %w", err))
+		}
 		stats["contacts"] = n
 
-		_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&n)
+		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&n); err != nil {
+			return mcpError(fmt.Errorf("count organizations: %w", err))
+		}
 		stats["organizations"] = n
 
 		var dealCount int
 		var dealValue float64
-		_ = db.QueryRowContext(ctx,
+		if err := db.QueryRowContext(ctx,
 			"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
-			Scan(&dealCount, &dealValue)
+			Scan(&dealCount, &dealValue); err != nil {
+			return mcpError(fmt.Errorf("count deals: %w", err))
+		}
 		stats["open_deals"] = dealCount
 		stats["deal_value"] = dealValue
 
-		_ = db.QueryRowContext(ctx,
-			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").Scan(&n)
+		if err := db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").Scan(&n); err != nil {
+			return mcpError(fmt.Errorf("count open tasks: %w", err))
+		}
 		stats["open_tasks"] = n
 
-		_ = db.QueryRowContext(ctx,
-			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").Scan(&n)
+		if err := db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").Scan(&n); err != nil {
+			return mcpError(fmt.Errorf("count overdue tasks: %w", err))
+		}
 		stats["overdue_tasks"] = n
 
-		_ = db.QueryRowContext(ctx,
-			"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").Scan(&n)
+		if err := db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").Scan(&n); err != nil {
+			return mcpError(fmt.Errorf("count interactions: %w", err))
+		}
 		stats["interactions_7days"] = n
 
 		return jsonResult(stats)

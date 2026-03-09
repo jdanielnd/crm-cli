@@ -88,6 +88,10 @@ func taskAddCmd() *cobra.Command {
 			}
 			defer db.Close()
 
+			if !model.ValidPriority(priority) {
+				return model.NewExitError(model.ErrValidation, "invalid priority: %s (must be one of: %s)", priority, strings.Join(model.Priorities, ", "))
+			}
+
 			input := model.CreateTaskInput{
 				Title:       args[0],
 				Description: nilIfEmpty(description),
@@ -227,6 +231,9 @@ func taskEditCmd() *cobra.Command {
 				input.DueAt = &due
 			}
 			if cmd.Flags().Changed("priority") {
+				if !model.ValidPriority(priority) {
+					return model.NewExitError(model.ErrValidation, "invalid priority: %s (must be one of: %s)", priority, strings.Join(model.Priorities, ", "))
+				}
 				input.Priority = &priority
 			}
 			if cmd.Flags().Changed("person") {
