@@ -110,6 +110,28 @@ func (r *TaskRepo) FindAll(ctx context.Context, filters model.TaskFilters) ([]*m
 	return tasks, rows.Err()
 }
 
+// OpenCount returns the number of non-completed, non-archived tasks.
+func (r *TaskRepo) OpenCount(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count open tasks: %w", err)
+	}
+	return count, nil
+}
+
+// OverdueCount returns the number of overdue, non-completed tasks.
+func (r *TaskRepo) OverdueCount(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count overdue tasks: %w", err)
+	}
+	return count, nil
+}
+
 // Complete marks a task as completed.
 func (r *TaskRepo) Complete(ctx context.Context, id int64) (*model.Task, error) {
 	result, err := r.db.ExecContext(ctx,

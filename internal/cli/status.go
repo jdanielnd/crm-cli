@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -23,38 +24,42 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 
 			ctx := cmd.Context()
 
-			// Count people
-			var personCount int
-			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&personCount)
+			pr := repo.NewPersonRepo(db)
+			or := repo.NewOrgRepo(db)
+			dr := repo.NewDealRepo(db)
+			tr := repo.NewTaskRepo(db)
+			ir := repo.NewInteractionRepo(db)
 
-			// Count organizations
-			var orgCount int
-			_ = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&orgCount)
+			personCount, err := pr.Count(ctx)
+			if err != nil {
+				return err
+			}
 
-			// Open deals summary
-			var dealCount int
-			var dealValue float64
-			_ = db.QueryRowContext(ctx,
-				"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
-				Scan(&dealCount, &dealValue)
+			orgCount, err := or.Count(ctx)
+			if err != nil {
+				return err
+			}
 
-			// Overdue tasks
-			var overdueCount int
-			_ = db.QueryRowContext(ctx,
-				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')").
-				Scan(&overdueCount)
+			dealCount, dealValue, err := dr.OpenSummary(ctx)
+			if err != nil {
+				return err
+			}
 
-			// Interactions this week
-			var weekInteractions int
-			_ = db.QueryRowContext(ctx,
-				"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= datetime('now', '-7 days')").
-				Scan(&weekInteractions)
+			overdueCount, err := tr.OverdueCount(ctx)
+			if err != nil {
+				return err
+			}
 
-			// Open tasks
-			var openTasks int
-			_ = db.QueryRowContext(ctx,
-				"SELECT COUNT(*) FROM tasks WHERE archived = 0 AND completed = 0").
-				Scan(&openTasks)
+			openTasks, err := tr.OpenCount(ctx)
+			if err != nil {
+				return err
+			}
+
+			sevenDaysAgo := time.Now().UTC().AddDate(0, 0, -7).Format("2006-01-02T15:04:05")
+			weekInteractions, err := ir.CountSince(ctx, sevenDaysAgo)
+			if err != nil {
+				return err
+			}
 
 			f := resolveFormat()
 			if f == format.FormatJSON || f == format.FormatCSV || f == format.FormatTSV {
@@ -86,8 +91,10 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 				openTasks, overdueCount, weekInteractions)
 
 			// Show pipeline if there are deals
-			dr := repo.NewDealRepo(db)
-			stages, _ := dr.Pipeline(ctx)
+			stages, err := dr.Pipeline(ctx)
+			if err != nil {
+				return err
+			}
 			if len(stages) > 0 {
 				fmt.Fprintln(os.Stdout)
 				fmt.Fprintln(os.Stdout, "Pipeline:")
@@ -98,8 +105,10 @@ func registerStatusCommand(rootCmd *cobra.Command) {
 
 			// Show overdue tasks if any
 			if overdueCount > 0 {
-				tr := repo.NewTaskRepo(db)
-				tasks, _ := tr.FindAll(ctx, model.TaskFilters{Overdue: true, Limit: 5})
+				tasks, err := tr.FindAll(ctx, model.TaskFilters{Overdue: true, Limit: 5})
+				if err != nil {
+					return err
+				}
 				if len(tasks) > 0 {
 					fmt.Fprintln(os.Stdout)
 					fmt.Fprintln(os.Stdout, "Overdue tasks:")

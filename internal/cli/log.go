@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -73,13 +72,9 @@ func logTypeCmd(interactionType string) *cobra.Command {
 		Short: fmt.Sprintf("Log a %s", interactionType),
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var personIDs []int64
-			for _, arg := range args {
-				id, err := strconv.ParseInt(arg, 10, 64)
-				if err != nil {
-					return model.NewExitError(model.ErrValidation, "invalid person ID: %s", arg)
-				}
-				personIDs = append(personIDs, id)
+			personIDs, err := parseEntityIDs(args, "person")
+			if err != nil {
+				return err
 			}
 
 			db, err := openDB()

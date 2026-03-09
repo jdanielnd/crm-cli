@@ -185,7 +185,7 @@ func TestPersonCSVFormat(t *testing.T) {
 	stdout, _, code := crm(t, dbPath, "person", "list", "-f", "csv")
 	assert.Equal(t, 0, code)
 	assert.Contains(t, stdout, "jane@example.com")
-	assert.Contains(t, stdout, "id,name,email")
+	assert.Contains(t, stdout, "ID,Name,Email")
 }
 
 func TestPersonInvalidID(t *testing.T) {

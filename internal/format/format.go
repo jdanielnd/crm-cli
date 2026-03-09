@@ -35,7 +35,7 @@ func Resolve(flag string) Format {
 	case "table":
 		return FormatTable
 	case "":
-		if term.IsTerminal(int(os.Stdout.Fd())) {
+		if IsTTY() {
 			return FormatTable
 		}
 		return FormatJSON
@@ -50,6 +50,11 @@ type ColumnDef struct {
 	Field  string
 }
 
+// IsTTY returns whether stdout is a terminal.
+func IsTTY() bool {
+	return term.IsTerminal(int(os.Stdout.Fd()))
+}
+
 // Output writes data in the specified format to w.
 func Output(w io.Writer, format Format, data []map[string]any, columns []ColumnDef, quiet bool) error {
 	if quiet {
@@ -58,7 +63,7 @@ func Output(w io.Writer, format Format, data []map[string]any, columns []ColumnD
 
 	switch format {
 	case FormatJSON:
-		return outputJSON(w, data)
+		return outputJSON(w, data, IsTTY())
 	case FormatCSV:
 		return outputCSV(w, data, columns, ',')
 	case FormatTSV:
@@ -77,12 +82,21 @@ func outputQuiet(w io.Writer, data []map[string]any) error {
 	return nil
 }
 
-func outputJSON(w io.Writer, data []map[string]any) error {
+func outputJSON(w io.Writer, data []map[string]any, isTTY bool) error {
 	enc := json.NewEncoder(w)
-	if term.IsTerminal(int(os.Stdout.Fd())) {
+	if isTTY {
 		enc.SetIndent("", "  ")
 	}
 	return enc.Encode(data)
+}
+
+// formatValue converts a value to its string representation,
+// returning "" for nil values.
+func formatValue(v any) string {
+	if v == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", v)
 }
 
 func outputTable(w io.Writer, data []map[string]any, columns []ColumnDef) error {
@@ -104,12 +118,7 @@ func outputTable(w io.Writer, data []map[string]any, columns []ColumnDef) error 
 	for _, row := range data {
 		vals := make(table.Row, len(columns))
 		for i, col := range columns {
-			v := row[col.Field]
-			if v == nil {
-				vals[i] = ""
-			} else {
-				vals[i] = fmt.Sprintf("%v", v)
-			}
+			vals[i] = formatValue(row[col.Field])
 		}
 		t.AppendRow(vals)
 	}
@@ -124,7 +133,7 @@ func outputCSV(w io.Writer, data []map[string]any, columns []ColumnDef, sep rune
 
 	headers := make([]string, len(columns))
 	for i, col := range columns {
-		headers[i] = col.Field
+		headers[i] = col.Header
 	}
 	if err := cw.Write(headers); err != nil {
 		return err
@@ -133,12 +142,7 @@ func outputCSV(w io.Writer, data []map[string]any, columns []ColumnDef, sep rune
 	for _, row := range data {
 		record := make([]string, len(columns))
 		for i, col := range columns {
-			v := row[col.Field]
-			if v == nil {
-				record[i] = ""
-			} else {
-				record[i] = fmt.Sprintf("%v", v)
-			}
+			record[i] = formatValue(row[col.Field])
 		}
 		if err := cw.Write(record); err != nil {
 			return err

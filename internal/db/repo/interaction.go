@@ -174,19 +174,27 @@ func (r *InteractionRepo) FindAll(ctx context.Context, filters model.Interaction
 	return interactions, nil
 }
 
+// CountSince returns the number of interactions since the given datetime string.
+func (r *InteractionRepo) CountSince(ctx context.Context, since string) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM interactions WHERE archived = 0 AND occurred_at >= ?", since).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count interactions since %s: %w", since, err)
+	}
+	return count, nil
+}
+
 // Search finds interactions matching a full-text query.
 func (r *InteractionRepo) Search(ctx context.Context, query string, limit int) ([]*model.Interaction, error) {
-	if limit <= 0 {
-		limit = 20
-	}
+	limit = defaultLimit(limit)
 
-	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
 	sqlStr := fmt.Sprintf(
 		`SELECT %s FROM interactions WHERE archived = 0 AND id IN (SELECT rowid FROM interactions_fts WHERE interactions_fts MATCH ?) ORDER BY occurred_at DESC LIMIT ?`,
 		interactionColumns,
 	)
 
-	rows, err := r.db.QueryContext(ctx, sqlStr, ftsQuery, limit)
+	rows, err := r.db.QueryContext(ctx, sqlStr, escapeFTS(query), limit)
 	if err != nil {
 		return nil, fmt.Errorf("search interactions: %w", err)
 	}

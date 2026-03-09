@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -180,9 +179,9 @@ func personShowCmd() *cobra.Command {
 		Short: "Show a person's details",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid person ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -212,9 +211,9 @@ func personEditCmd() *cobra.Command {
 		Short: "Edit a person",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid person ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -282,9 +281,9 @@ func personDeleteCmd() *cobra.Command {
 		Short: "Delete a person (soft-delete)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid person ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()

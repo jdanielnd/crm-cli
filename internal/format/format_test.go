@@ -60,7 +60,7 @@ func TestOutputCSV(t *testing.T) {
 
 	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 	assert.Len(t, lines, 3) // header + 2 rows
-	assert.Equal(t, "id,name,email", lines[0])
+	assert.Equal(t, "ID,Name,Email", lines[0])
 	assert.Contains(t, lines[1], "Jane Smith")
 	assert.Contains(t, lines[1], "jane@example.com")
 }

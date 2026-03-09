@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
@@ -30,7 +29,7 @@ func registerContextCommand(rootCmd *cobra.Command) {
 
 			// Try to parse as ID first, otherwise search by name
 			var person *model.Person
-			id, parseErr := parseID(args[0])
+			id, parseErr := parseEntityID(args[0], "person")
 			if parseErr == nil {
 				person, err = pr.FindByID(cmd.Context(), id)
 				if err != nil {
@@ -231,6 +230,3 @@ func registerContextCommand(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(cmd)
 }
 
-func parseID(s string) (int64, error) {
-	return strconv.ParseInt(s, 10, 64)
-}

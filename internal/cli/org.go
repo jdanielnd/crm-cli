@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
@@ -139,9 +138,9 @@ func orgShowCmd() *cobra.Command {
 		Short: "Show an organization's details",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "organization")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid organization ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -183,9 +182,9 @@ func orgEditCmd() *cobra.Command {
 		Short: "Edit an organization",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "organization")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid organization ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -233,9 +232,9 @@ func orgDeleteCmd() *cobra.Command {
 		Short: "Delete an organization (soft-delete)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "organization")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid organization ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()

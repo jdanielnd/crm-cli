@@ -166,19 +166,26 @@ func (r *OrgRepo) Archive(ctx context.Context, id int64) error {
 	return nil
 }
 
+// Count returns the number of non-archived organizations.
+func (r *OrgRepo) Count(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM organizations WHERE archived = 0").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count organizations: %w", err)
+	}
+	return count, nil
+}
+
 // Search performs full-text search on organizations.
 func (r *OrgRepo) Search(ctx context.Context, query string, limit int) ([]*model.Organization, error) {
-	if limit <= 0 {
-		limit = 20
-	}
+	limit = defaultLimit(limit)
 
-	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
 	sqlStr := fmt.Sprintf(
 		`SELECT %s FROM organizations WHERE archived = 0 AND id IN (SELECT rowid FROM organizations_fts WHERE organizations_fts MATCH ?) ORDER BY updated_at DESC LIMIT ?`,
 		orgColumns,
 	)
 
-	rows, err := r.db.QueryContext(ctx, sqlStr, ftsQuery, limit)
+	rows, err := r.db.QueryContext(ctx, sqlStr, escapeFTS(query), limit)
 	if err != nil {
 		return nil, fmt.Errorf("search organizations: %w", err)
 	}

@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
@@ -173,9 +172,9 @@ func taskShowCmd() *cobra.Command {
 		Short: "Show task details",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "task")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid task ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -205,9 +204,9 @@ func taskEditCmd() *cobra.Command {
 		Short: "Edit a task",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "task")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid task ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -263,9 +262,9 @@ func taskDoneCmd() *cobra.Command {
 		Short: "Mark a task as completed",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "task")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid task ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -292,9 +291,9 @@ func taskDeleteCmd() *cobra.Command {
 		Short: "Delete a task (soft-delete)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "task")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid task ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()

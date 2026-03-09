@@ -245,20 +245,26 @@ func (r *PersonRepo) Archive(ctx context.Context, id int64) error {
 	return nil
 }
 
+// Count returns the number of non-archived people.
+func (r *PersonRepo) Count(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM people WHERE archived = 0").Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count people: %w", err)
+	}
+	return count, nil
+}
+
 // Search performs full-text search on people.
 func (r *PersonRepo) Search(ctx context.Context, query string, limit int) ([]*model.Person, error) {
-	if limit <= 0 {
-		limit = 20
-	}
+	limit = defaultLimit(limit)
 
 	sql := fmt.Sprintf(
 		`SELECT %s FROM people WHERE archived = 0 AND id IN (SELECT rowid FROM people_fts WHERE people_fts MATCH ?) ORDER BY updated_at DESC LIMIT ?`,
 		personColumns,
 	)
 
-	// Quote the query to handle special FTS5 characters like @
-	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
-	rows, err := r.db.QueryContext(ctx, sql, ftsQuery, limit)
+	rows, err := r.db.QueryContext(ctx, sql, escapeFTS(query), limit)
 	if err != nil {
 		return nil, fmt.Errorf("search people: %w", err)
 	}

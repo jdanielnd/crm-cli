@@ -185,17 +185,14 @@ func (r *DealRepo) Archive(ctx context.Context, id int64) error {
 
 // Search finds deals matching a full-text query.
 func (r *DealRepo) Search(ctx context.Context, query string, limit int) ([]*model.Deal, error) {
-	if limit <= 0 {
-		limit = 20
-	}
+	limit = defaultLimit(limit)
 
-	ftsQuery := `"` + strings.ReplaceAll(query, `"`, `""`) + `"` + "*"
 	rows, err := r.db.QueryContext(ctx,
 		`SELECT id, uuid, title, value, stage, person_id, org_id, notes, closed_at,
 		        archived, created_at, updated_at
 		 FROM deals WHERE archived = 0 AND id IN (SELECT rowid FROM deals_fts WHERE deals_fts MATCH ?)
 		 ORDER BY updated_at DESC LIMIT ?`,
-		ftsQuery, limit)
+		escapeFTS(query), limit)
 	if err != nil {
 		return nil, fmt.Errorf("search deals: %w", err)
 	}
@@ -210,6 +207,17 @@ func (r *DealRepo) Search(ctx context.Context, query string, limit int) ([]*mode
 		deals = append(deals, d)
 	}
 	return deals, rows.Err()
+}
+
+// OpenSummary returns the count and total value of open deals.
+func (r *DealRepo) OpenSummary(ctx context.Context) (count int, totalValue float64, err error) {
+	err = r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*), COALESCE(SUM(value), 0) FROM deals WHERE archived = 0 AND stage NOT IN ('won', 'lost')").
+		Scan(&count, &totalValue)
+	if err != nil {
+		return 0, 0, fmt.Errorf("open deal summary: %w", err)
+	}
+	return count, totalValue, nil
 }
 
 // Pipeline returns a summary of deals grouped by stage.
