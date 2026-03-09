@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
@@ -181,9 +180,9 @@ func dealShowCmd() *cobra.Command {
 		Short: "Show deal details",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "deal")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid deal ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -214,9 +213,9 @@ func dealEditCmd() *cobra.Command {
 		Short: "Edit a deal",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "deal")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid deal ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -276,9 +275,9 @@ func dealDeleteCmd() *cobra.Command {
 		Short: "Delete a deal (soft-delete)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "deal")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid deal ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()

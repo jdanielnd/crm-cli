@@ -3,11 +3,9 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/format"
-	"github.com/jdanielnd/crm-cli/internal/model"
 	"github.com/spf13/cobra"
 )
 
@@ -64,9 +62,9 @@ func tagApplyCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			entityType := args[0]
-			entityID, err := strconv.ParseInt(args[1], 10, 64)
+			entityID, err := parseEntityID(args[1], "entity")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid entity ID: %s", args[1])
+				return err
 			}
 			tagName := args[2]
 
@@ -94,9 +92,9 @@ func tagRemoveCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			entityType := args[0]
-			entityID, err := strconv.ParseInt(args[1], 10, 64)
+			entityID, err := parseEntityID(args[1], "entity")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid entity ID: %s", args[1])
+				return err
 			}
 			tagName := args[2]
 
@@ -124,9 +122,9 @@ func tagShowCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			entityType := args[0]
-			entityID, err := strconv.ParseInt(args[1], 10, 64)
+			entityID, err := parseEntityID(args[1], "entity")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid entity ID: %s", args[1])
+				return err
 			}
 
 			db, err := openDB()

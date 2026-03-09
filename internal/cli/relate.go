@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
@@ -34,13 +33,13 @@ func personRelateCmd() *cobra.Command {
 		Short: "Create a relationship between two people",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			personID, err := strconv.ParseInt(args[0], 10, 64)
+			personID, err := parseEntityID(args[0], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid person ID: %s", args[0])
+				return err
 			}
-			relatedID, err := strconv.ParseInt(args[1], 10, 64)
+			relatedID, err := parseEntityID(args[1], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid related person ID: %s", args[1])
+				return err
 			}
 
 			db, err := openDB()
@@ -73,9 +72,9 @@ func personRelationshipsCmd() *cobra.Command {
 		Short:   "List relationships for a person",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			personID, err := strconv.ParseInt(args[0], 10, 64)
+			personID, err := parseEntityID(args[0], "person")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid person ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()
@@ -115,9 +114,9 @@ func personUnrelateCmd() *cobra.Command {
 		Short: "Remove a relationship",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := strconv.ParseInt(args[0], 10, 64)
+			id, err := parseEntityID(args[0], "relationship")
 			if err != nil {
-				return model.NewExitError(model.ErrValidation, "invalid relationship ID: %s", args[0])
+				return err
 			}
 
 			db, err := openDB()

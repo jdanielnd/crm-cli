@@ -229,80 +229,48 @@ type Relationship struct {
 	CreatedAt       string  `json:"created_at"`
 }
 
-// Valid entity types for tagging.
-var EntityTypes = []string{"person", "organization", "deal", "interaction"}
-
-// ValidEntityType checks if the given type is valid.
-func ValidEntityType(t string) bool {
-	for _, et := range EntityTypes {
-		if et == t {
+// contains checks if a string is present in a slice.
+func contains(slice []string, value string) bool {
+	for _, s := range slice {
+		if s == value {
 			return true
 		}
 	}
 	return false
 }
+
+// Valid entity types for tagging.
+var EntityTypes = []string{"person", "organization", "deal", "interaction"}
+
+// ValidEntityType checks if the given type is valid.
+func ValidEntityType(t string) bool { return contains(EntityTypes, t) }
 
 // Interaction types
 var InteractionTypes = []string{"call", "email", "meeting", "note", "message"}
 
 // ValidInteractionType checks if the given type is valid.
-func ValidInteractionType(t string) bool {
-	for _, it := range InteractionTypes {
-		if it == t {
-			return true
-		}
-	}
-	return false
-}
+func ValidInteractionType(t string) bool { return contains(InteractionTypes, t) }
 
 // InteractionDirections lists valid interaction directions.
 var InteractionDirections = []string{"inbound", "outbound"}
 
 // ValidInteractionDirection checks if the given direction is valid.
-func ValidInteractionDirection(d string) bool {
-	for _, id := range InteractionDirections {
-		if id == d {
-			return true
-		}
-	}
-	return false
-}
+func ValidInteractionDirection(d string) bool { return contains(InteractionDirections, d) }
 
 // Deal stages
 var DealStages = []string{"lead", "prospect", "proposal", "negotiation", "won", "lost"}
 
 // ValidDealStage checks if the given stage is valid.
-func ValidDealStage(s string) bool {
-	for _, ds := range DealStages {
-		if ds == s {
-			return true
-		}
-	}
-	return false
-}
+func ValidDealStage(s string) bool { return contains(DealStages, s) }
 
 // Priority levels
 var Priorities = []string{"low", "medium", "high"}
 
 // ValidPriority checks if the given priority is valid.
-func ValidPriority(p string) bool {
-	for _, pr := range Priorities {
-		if pr == p {
-			return true
-		}
-	}
-	return false
-}
+func ValidPriority(p string) bool { return contains(Priorities, p) }
 
 // Relationship types
 var RelationshipTypes = []string{"colleague", "friend", "manager", "mentor", "referred-by"}
 
 // ValidRelationshipType checks if the given type is valid.
-func ValidRelationshipType(t string) bool {
-	for _, rt := range RelationshipTypes {
-		if rt == t {
-			return true
-		}
-	}
-	return false
-}
+func ValidRelationshipType(t string) bool { return contains(RelationshipTypes, t) }
