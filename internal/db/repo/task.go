@@ -83,6 +83,9 @@ func (r *TaskRepo) FindAll(ctx context.Context, filters model.TaskFilters) ([]*m
 	if filters.Overdue {
 		query += " AND completed = 0 AND due_at IS NOT NULL AND due_at < datetime('now')"
 	}
+	if filters.DueWithinDays != nil {
+		query += fmt.Sprintf(" AND completed = 0 AND due_at IS NOT NULL AND due_at >= date('now') AND due_at <= date('now', '+%d days')", *filters.DueWithinDays)
+	}
 	if !filters.IncludeCompleted {
 		query += " AND completed = 0"
 	}

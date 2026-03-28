@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
+	"text/template"
 
 	"github.com/jdanielnd/crm-cli/internal/db/repo"
 	"github.com/jdanielnd/crm-cli/internal/model"
@@ -231,6 +233,24 @@ func NewServer(db *sql.DB, version string) *server.MCPServer {
 			gomcp.WithDescription("CRM summary statistics"),
 		),
 		statsHandler(db),
+	)
+
+	// Template tools
+	tmplr := repo.NewTemplateRepo(db)
+	s.AddTool(
+		gomcp.NewTool("crm_template_list",
+			gomcp.WithDescription("List all message templates"),
+		),
+		templateListHandler(tmplr),
+	)
+
+	s.AddTool(
+		gomcp.NewTool("crm_template_render",
+			gomcp.WithDescription("Render a template with person data"),
+			gomcp.WithString("name", gomcp.Required(), gomcp.Description("Template name")),
+			gomcp.WithNumber("person_id", gomcp.Required(), gomcp.Description("Person ID to populate template fields")),
+		),
+		templateRenderHandler(tmplr, pr, or),
 	)
 
 	return s
@@ -825,5 +845,82 @@ func statsHandler(db *sql.DB) server.ToolHandlerFunc {
 		stats["interactions_7days"] = n
 
 		return jsonResult(stats)
+	}
+}
+
+// --- Template handlers ---
+
+func templateListHandler(tmplr *repo.TemplateRepo) server.ToolHandlerFunc {
+	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+		templates, err := tmplr.FindAll(ctx)
+		if err != nil {
+			return mcpError(err)
+		}
+		return jsonResult(templates)
+	}
+}
+
+func templateRenderHandler(tmplr *repo.TemplateRepo, pr *repo.PersonRepo, or *repo.OrgRepo) server.ToolHandlerFunc {
+	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
+		name := req.GetString("name", "")
+		personID, errResult := requireID(req, "person_id")
+		if errResult != nil {
+			return errResult, nil
+		}
+
+		tmpl, err := tmplr.FindByName(ctx, name)
+		if err != nil {
+			return mcpError(err)
+		}
+
+		person, err := pr.FindByID(ctx, personID)
+		if err != nil {
+			return mcpError(err)
+		}
+
+		data := model.TemplateData{FirstName: person.FirstName}
+		if person.LastName != nil {
+			data.LastName = *person.LastName
+		}
+		if person.Email != nil {
+			data.Email = *person.Email
+		}
+		if person.Phone != nil {
+			data.Phone = *person.Phone
+		}
+		if person.Title != nil {
+			data.Title = *person.Title
+		}
+		if person.Company != nil {
+			data.Company = *person.Company
+		}
+		if person.Location != nil {
+			data.Location = *person.Location
+		}
+
+		if person.OrgID != nil {
+			org, err := or.FindByID(ctx, *person.OrgID)
+			if err == nil {
+				data.OrgName = org.Name
+				if org.Domain != nil {
+					data.OrgDomain = *org.Domain
+				}
+				if org.Industry != nil {
+					data.OrgIndustry = *org.Industry
+				}
+			}
+		}
+
+		t, parseErr := template.New(tmpl.Name).Parse(tmpl.Body)
+		if parseErr != nil {
+			return gomcp.NewToolResultError(fmt.Sprintf("invalid template: %s", parseErr)), nil
+		}
+
+		var buf strings.Builder
+		if execErr := t.Execute(&buf, data); execErr != nil {
+			return gomcp.NewToolResultError(fmt.Sprintf("render error: %s", execErr)), nil
+		}
+
+		return gomcp.NewToolResultText(buf.String()), nil
 	}
 }

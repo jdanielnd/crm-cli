@@ -215,8 +215,39 @@ type TaskFilters struct {
 	PersonID         *int64
 	DealID           *int64
 	Overdue          bool
+	DueWithinDays    *int
 	IncludeCompleted bool
 	Limit            int
+}
+
+// Template represents a reusable text template.
+type Template struct {
+	ID        int64  `json:"id"`
+	UUID      string `json:"uuid"`
+	Name      string `json:"name"`
+	Body      string `json:"body"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+// CreateTemplateInput holds fields for creating a template.
+type CreateTemplateInput struct {
+	Name string
+	Body string
+}
+
+// TemplateData holds fields available for template rendering.
+type TemplateData struct {
+	FirstName   string
+	LastName    string
+	Email       string
+	Phone       string
+	Title       string
+	Company     string
+	Location    string
+	OrgName     string
+	OrgDomain   string
+	OrgIndustry string
 }
 
 // Relationship represents a person-to-person link.
