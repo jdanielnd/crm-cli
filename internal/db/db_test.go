@@ -14,7 +14,7 @@ func TestOpen_InMemory(t *testing.T) {
 	defer d.Close()
 
 	// Verify tables exist
-	tables := []string{"people", "organizations", "interactions", "deals", "tasks", "tags", "taggings", "custom_fields", "relationships"}
+	tables := []string{"people", "organizations", "interactions", "deals", "tasks", "tags", "taggings", "custom_fields", "relationships", "templates"}
 	for _, table := range tables {
 		var name string
 		err := d.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name=?", table).Scan(&name)
@@ -58,5 +58,5 @@ func TestOpen_MigrationVersion(t *testing.T) {
 
 	var version int
 	_ = d.QueryRow("PRAGMA user_version").Scan(&version)
-	assert.Equal(t, 1, version)
+	assert.Equal(t, 2, version)
 }

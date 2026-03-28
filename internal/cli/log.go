@@ -67,7 +67,7 @@ func registerLogCommands(rootCmd *cobra.Command) {
 }
 
 func logTypeCmd(interactionType string) *cobra.Command {
-	var subject, content, direction, at string
+	var subject, content, direction, at, followup string
 
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("%s <person_id> [person_id...]", interactionType),
@@ -110,6 +110,29 @@ func logTypeCmd(interactionType string) *cobra.Command {
 				return err
 			}
 
+			// Auto-create follow-up task if --followup specified
+			if followup != "" {
+				dueDate, err := parseDueDate(followup)
+				if err != nil {
+					return err
+				}
+
+				taskTitle := fmtFollowupTitle(interaction.Subject, interactionType)
+				taskInput := model.CreateTaskInput{
+					Title:    taskTitle,
+					PersonID: &personIDs[0],
+					DueAt:    &dueDate,
+					Priority: "medium",
+				}
+
+				tr := repo.NewTaskRepo(db)
+				task, err := tr.Create(cmd.Context(), taskInput)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintf(os.Stderr, "Created follow-up task #%d (due %s)\n", task.ID, dueDate)
+			}
+
 			data := []map[string]any{interactionToMap(interaction)}
 			return format.Output(os.Stdout, resolveFormat(), data, interactionColumns, flagQuiet)
 		},
@@ -119,6 +142,7 @@ func logTypeCmd(interactionType string) *cobra.Command {
 	cmd.Flags().StringVar(&content, "content", "", "content/body")
 	cmd.Flags().StringVar(&direction, "direction", "", "direction: inbound or outbound")
 	cmd.Flags().StringVar(&at, "at", "", "when the interaction occurred (ISO 8601)")
+	cmd.Flags().StringVar(&followup, "followup", "", "auto-create follow-up task (e.g. 7d, 2w, 1m)")
 
 	return cmd
 }

@@ -49,6 +49,9 @@ func NewRootCmd() *cobra.Command {
 	registerContextCommand(rootCmd)
 	registerStatusCommand(rootCmd)
 	registerMCPCommands(rootCmd)
+	registerTemplateCommands(rootCmd)
+	registerFollowupCommand(rootCmd)
+	registerBackupCommands(rootCmd)
 
 	return rootCmd
 }
